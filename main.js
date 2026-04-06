@@ -9,11 +9,11 @@ import { startFeishuMessageListener } from './src/chatApp/feishu/index.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONFIG_PATH = join(__dirname, 'config', 'chat-code-bridge.json');
 
-
-
 const main = async () => {
   const raw = readFileSync(CONFIG_PATH, 'utf8');
-  const root = /** @type {TreeNode} */ (JSON.parse(raw));
+  const root = /** @type {import('./utils/applyTreeNode.js').TreeNode} */ (
+    JSON.parse(raw)
+  );
   applyTreeNode(homedir(), root);
   const bridge = await selectAppBridge();
   console.log(JSON.stringify(bridge, null, 2));

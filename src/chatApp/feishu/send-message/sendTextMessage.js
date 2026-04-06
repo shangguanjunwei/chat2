@@ -1,11 +1,8 @@
 /**
- * 使用 @larksuiteoapi/node-sdk 发送文本消息（im.v1.message.create，msg_type: text）
+ * im.v1.message.create，msg_type: text
  *
- * @param {import('@larksuiteoapi/node-sdk').Client} client - 已配置 appId / appSecret 的 Lark Client
- * @param {object} options
- * @param {string} options.receiveId - 接收方 ID（与 receiveIdType 对应）
- * @param {'open_id' | 'user_id' | 'union_id' | 'email' | 'chat_id'} [options.receiveIdType='chat_id']
- * @param {string} options.text - 纯文本内容
+ * @param {import('@larksuiteoapi/node-sdk').Client} client
+ * @param {{ receiveId: string, receiveIdType?: string, text: string }} options
  */
 export const sendTextMessage = async (client, options) => {
   const { receiveId, receiveIdType = 'chat_id', text } = options;

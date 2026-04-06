@@ -15,7 +15,7 @@ function readSession() {
     const row = JSON.parse(readFileSync(sessionPath, 'utf8'));
     if (row?.chatId && typeof row.workspace === 'string') return row;
   } catch {
-    // 文件不存在或内容无效
+    /* 无文件或 JSON 无效 */
   }
   return null;
 }
@@ -90,20 +90,15 @@ async function sendMessageToCursorImpl(message) {
 }
 
 /**
- * 通过本机 Cursor Agent CLI（`agent`）发送一条用户消息，并在同一工作区内复用固定会话。
- * 会话 id 持久化在 ~/.chat-code-bridge/cursor-agent-session.json。
- *
- * 环境变量：
- * - CURSOR_AGENT_WORKSPACE：工作区目录（默认 process.cwd()）
- * - CURSOR_AGENT_BIN：`agent` 可执行文件路径（默认在 PATH 中查找）
+ * 经本机 Cursor Agent CLI（`agent`，可用 `CURSOR_AGENT_BIN`）发消息并复用会话。
+ * 会话：`~/.chat-code-bridge/cursor-agent-session.json`；工作区：`CURSOR_AGENT_WORKSPACE` 或 `cwd`。
  *
  * @param {string} text
- * @returns {Promise<{ text: string, chatId: string }>}
  */
 export async function sendMessageToCursor(text) {
   const message = String(text ?? '').trim();
   if (!message) throw new Error('发送 Cursor 的消息不能为空');
   const done = gate.then(() => sendMessageToCursorImpl(message));
-  gate = done.catch(() => { });
+  gate = done.catch(() => {});
   return done;
 }

@@ -7,18 +7,18 @@ import { stdin as defaultInput, stdout as defaultOutput } from 'node:process';
 import { readCofig } from '../../utils/readCofig.js';
 import { writeConfig } from '../../utils/writeConfig.js';
 
-/** @typedef {{ key: string, label: string, env: { appId: string, appSecret: string, domain: string } }} BridgeDefinition */
-
 /**
+ * @typedef {{ key: string, label: string, needConfigKeys: Array<{ key: string, label: string, defaultValue?: string }> }} BridgeDefinition
  * @typedef {BridgeDefinition & { appId: string, appSecret: string, domain: string }} AppBridgeSelection
  */
 
 const OPTIONS_PATH = join(dirname(fileURLToPath(import.meta.url)), '../../config/chat-options.json');
 
 /** @type {BridgeDefinition[]} */
-export const BRIDGE_OPTIONS = JSON.parse(readFileSync(OPTIONS_PATH, 'utf8'));
+const BRIDGE_OPTIONS = JSON.parse(readFileSync(OPTIONS_PATH, 'utf8'));
 
 const menuLineCount = () => 1 + BRIDGE_OPTIONS.length;
+
 const readCredentialsFromUserFile = (bridge) => {
   const data = readCofig();
   const creds = {};
@@ -32,11 +32,6 @@ const readCredentialsFromUserFile = (bridge) => {
   return creds;
 };
 
-/**
- * @param {import('node:stream').Readable} input
- * @param {import('node:stream').Writable} output
- * @returns {Promise<BridgeDefinition>}
- */
 const selectBridgeByNumber = async (input, output) => {
   const rl = readlinePromises.createInterface({ input, output });
   try {
@@ -55,13 +50,8 @@ const selectBridgeByNumber = async (input, output) => {
   }
 };
 
-/**
- * @param {import('node:stream').Readable} input
- * @param {import('node:stream').Writable} output
- * @returns {Promise<BridgeDefinition>}
- */
-const selectBridgeInteractive = async (input, output) =>
-  await new Promise((resolve) => {
+const selectBridgeInteractive = (input, output) =>
+  new Promise((resolve) => {
     let index = 0;
 
     const draw = () => {
@@ -116,18 +106,12 @@ const selectBridgeInteractive = async (input, output) =>
     input.on('keypress', onKeypress);
   });
 
-/**
- * @param {BridgeDefinition} bridge
- * @param {import('node:stream').Readable} input
- * @param {import('node:stream').Writable} output
- * @returns {Promise<{ appId: string, appSecret: string, domain: string }>}
- */
 const promptPlatformCredentials = async (bridge, input, output) => {
   const rl = readlinePromises.createInterface({ input, output });
   const creds = {};
   try {
     for (const key of bridge.needConfigKeys) {
-      const value = await rl.question(`${key.label}: \n`);
+      let value = await rl.question(`${key.label}: \n`);
       if (!value && key.defaultValue) {
         value = key.defaultValue;
       }
@@ -143,8 +127,7 @@ const promptPlatformCredentials = async (bridge, input, output) => {
 };
 
 /**
- * 选择 app 平台；优先使用用户目录配置（readCofig），若无则交互输入并写回配置文件。
- * 交互补全的配置会写回用户目录配置文件。
+ * 选择桥接平台：优先读用户目录配置，缺项则交互补全并写回。
  *
  * @param {{ stdin?: import('node:stream').Readable, stdout?: import('node:stream').Writable }} [io]
  * @returns {Promise<AppBridgeSelection>}
@@ -159,8 +142,7 @@ export const selectAppBridge = async (io = {}) => {
 
   let fromFile = readCredentialsFromUserFile(bridge);
   if (!fromFile) {
-    const creds = await promptPlatformCredentials(bridge, input, output);
-    fromFile = creds;
+    fromFile = await promptPlatformCredentials(bridge, input, output);
   }
   const config = {};
   for (const key of bridge.needConfigKeys) {
@@ -168,7 +150,7 @@ export const selectAppBridge = async (io = {}) => {
   }
   writeConfig({
     ...config,
-    "appBridge": bridge.key,
+    appBridge: bridge.key,
   });
   delete bridge.needConfigKeys;
   return { ...bridge, ...fromFile };

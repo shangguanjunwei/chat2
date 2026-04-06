@@ -2,12 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { readCofig } from './readCofig.js';
 import { getUserBridgeConfigPath } from './getUserBridgeConfigPath.js';
 
-/**
- * 按点路径在对象上赋值，仅创建路径上缺失的中间对象，不改动未出现在入参中的键。
- * @param {Record<string, unknown>} obj
- * @param {string} dotPath 如 chatApp.feishu.appId
- * @param {unknown} value
- */
+/** 点路径赋值，仅补齐路径上的中间对象 */
 const setByDotPath = (obj, dotPath, value) => {
   const parts = dotPath.split('.').filter(Boolean);
   if (parts.length === 0) {
@@ -26,8 +21,9 @@ const setByDotPath = (obj, dotPath, value) => {
 };
 
 /**
- * 读取用户主目录下已有配置（与 readCofig 同源），仅按点路径合并更新指定字段后写回同一路径。
- * @param {Record<string, unknown>} partial 键为点路径，如 { 'chatApp.feishu.appId': '1234567890', 'chatApp.feishu.appSecret': '…' }
+ * 合并写入 `~/.chat-code-bridge/chat-code-bridge.json`（键为点路径，如 `chatApp.feishu.appId`）。
+ *
+ * @param {Record<string, unknown>} partial
  */
 export const writeConfig = (partial) => {
   if (!partial || typeof partial !== 'object' || Array.isArray(partial)) {
