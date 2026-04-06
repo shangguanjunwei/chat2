@@ -76,10 +76,9 @@ chat-code-bridge/
 长连接 `WSClient` 订阅 `im.message.receive_v1`；仅处理「单聊」或「群聊里 @ 本机器人」的消息。单条事件在回调内的顺序为：
 
 1. 解析出文本与 `chat_id` / `message_id`；无文本则结束。
-2. **按 `message_id` 去重**（内存 Set，上限约 500 条）；平台重试导致已处理过的 id 则直接返回，**不再**点赞、调 Agent、发回复。
-3. `sendMessageReaction`：对原消息点表情（如 `THUMBSUP`）。
-4. `sendMessageToCursor(text)`（`src/aiCode/cursor/index.js`）：通过本机 **Cursor Agent CLI**（默认可执行名 `agent`，可用 `CURSOR_AGENT_BIN` 覆盖）在同一工作区复用会话；会话 id 落在 `~/.chat-code-bridge/cursor-agent-session.json`；工作区由 `CURSOR_AGENT_WORKSPACE` 指定，默认 `process.cwd()`。
-5. `sendTextMessage`：把 Agent 返回的文本发回对应会话（`chat_id`）。
+2. `sendMessageReaction`：对原消息点表情（当前为 **`Typing`**，表示处理中）。
+3. `sendMessageToCursor(client, options)`（`src/aiCode/cursor/index.js`）：通过本机 **Cursor Agent CLI**（默认可执行名 `agent`）在同一工作区复用会话；会话落在 `~/.chat-code-bridge/chat-code-bridge-session.json`；工作区当前为 `process.cwd()`（即运行 `node main.js` 时的目录）。
+4. `sendTextMessage`：把 Agent 返回的文本发回对应会话（`chat_id`）。
 
 ```mermaid
 flowchart TB
@@ -102,17 +101,15 @@ flowchart TB
     F -->|是| T[解析文本]
   end
 
-  subgraph bridge["去重 → Cursor → 回写"]
-    T --> U{message_id<br/>首次?}
-    U -->|否| X2[跳过]
-    U -->|是| R[sendMessageReaction]
+  subgraph bridge["表情 → Cursor → 回写"]
+    T --> R[sendMessageReaction]
     R --> C[sendMessageToCursor]
     C --> G["agent CLI<br/>create-chat / --resume + --print"]
     G --> P["sendTextMessage<br/>回复同一 chat_id"]
   end
 ```
 
-（图中 `agent CLI` 步骤对应环境变量 `CURSOR_AGENT_BIN`，工作区对应 `CURSOR_AGENT_WORKSPACE`。）
+（图中 `agent CLI` 默认可执行名为 `agent`；工作区为运行进程时的 `process.cwd()`。）
 
 `src/chatApp/lark/index.js` 将 `startFeishuMessageListener` 再导出为 `startLarkMessageListener`；`lark/send-message` 自 `feishu/send-message` 再导出。**当前 `main.js` 仅调用 `startFeishuMessageListener`**，未单独启动 `startLarkMessageListener` 时，长连接入口以 `feishu/index.js` 为准。
 
@@ -129,8 +126,7 @@ sequenceDiagram
 
   U->>Lark: 发送文本（单聊或群聊 @ 机器人）
   Lark->>App: WebSocket im.message.receive_v1
-  Note over App: message_id 去重（重复则不再处理）
-  App->>Lark: sendMessageReaction（如点赞）
+  App->>Lark: sendMessageReaction（Typing）
   App->>Agent: sendMessageToCursor（用户文本）
   Agent->>App: 模型/Agent 文本输出
   App->>Lark: sendTextMessage（回复到 chat_id）
@@ -159,6 +155,7 @@ sequenceDiagram
 
 | 日期 | 说明 |
 | --- | --- |
+| 2026-04-07 | 数据流与源码对齐：去掉已不存在的 `message_id` 去重描述；表情为 `Typing`；会话文件为 `chat-code-bridge-session.json`；新增 `docs/feishu-project-overview.md` 供飞书文档导入。 |
 | 2026-04-06 | 「数据流」补充 `message_id` 去重步骤；流程图与时序图与 `feishu/index.js` 对齐；增加本节总述。 |
 | 2026-04-06 | `README.md` 目录结构按当前仓库更新：`lark/` 为再导出、`feishu/` 为发送实现；各目录摘要与「功能说明」同步。 |
 | 2026-04-06 | `README.md` 文首增加快速导航；「数据流」补充参与者时序图（sequenceDiagram）。 |

@@ -82,7 +82,7 @@ const sendMessageToCursorImpl = async (message) => {
   return { text: out.trim(), chatId };
 }
 
-/** Cursor Agent CLI（`CURSOR_AGENT_BIN`，默认 `agent`）发消息；会话见 `~/.chat-code-bridge/cursor-agent-session.json`。 */
+/** Cursor Agent CLI（默认可执行名 `agent`）发消息；会话见 `~/.chat-code-bridge/chat-code-bridge-session.json`。 */
 export const sendMessageToCursor = async (client, options) => {
   const message = String(options.content.text ?? '').trim();
   if (!message) throw new Error('发送 Cursor 的消息不能为空');
