@@ -6,6 +6,19 @@ import { sendTextMessage } from './send-message/sendTextMessage.js';
 
 const config = readCofig();
 
+/** 近期已处理过的 message_id，避免平台重试/重复推送导致同一条消息跑两次 Agent */
+const processedMessageIds = new Set();
+const PROCESSED_ID_MAX = 500;
+function consumeMessageIdOnce(messageId) {
+  if (!messageId || processedMessageIds.has(messageId)) return false;
+  processedMessageIds.add(messageId);
+  if (processedMessageIds.size > PROCESSED_ID_MAX) {
+    const oldest = processedMessageIds.values().next().value;
+    processedMessageIds.delete(oldest);
+  }
+  return true;
+}
+
 const isFeishuMessageForThisBot = (data) => {
   const { chat_type, mentions = [] } = data.message;
   if (chat_type === 'p2p') return true;
@@ -67,10 +80,16 @@ export const startFeishuMessageListener = async (bridge) => {
         sendTextMessage(client, {
           receiveId: options.chat_id,
           receiveIdType: 'chat_id',
-          text: result.text,
+          text: result.text || '',
         });
       },
+      'im.message.message_read_v1': async (data) => {
+        // console.log(JSON.stringify(data, null, 2))
+      },
       'im.message.reaction.created_v1': async (data) => {
+        // console.log(JSON.stringify(data, null, 2))
+      },
+      'im.message.reaction.deleted_v1': async (data) => {
         // console.log(JSON.stringify(data, null, 2))
       }
     })
