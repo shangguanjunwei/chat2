@@ -43,34 +43,39 @@ export const startFeishuMessageListener = async (bridge) => {
   };
 
   const client = new Lark.Client({ appId, appSecret, domain });
-  new Lark.WSClient({ appId, appSecret, domain }).start({
+  new Lark.WSClient({
+    appId,
+    appSecret,
+    domain
+  }).start({
     eventDispatcher: new Lark.EventDispatcher({}).register({
       'im.message.receive_v1': async (data) => {
         if (!isForThisBot(data)) return;
+        writeLog("监听到消息", JSON.stringify(data));
         const options = getFormattedData(data);
-        writeLog("收到消息receive_v1", JSON.stringify(options));
         if (!options?.content?.text) return;
-
-        client.im.v1.messageReaction.create({
-          path: { message_id: options.message_id },
-          data: {
-            reaction_type: { emoji_type: 'Typing' },
-          },
+        await sendMessageReaction(client, {
+          messageId: options.message_id,
+          emojiType: 'Typing',
         });
-
-        // sendMessageReaction(client, {
-        //   messageId: options.message_id,
-        //   emojiType: 'Typing',
-        // });
-        // const result = await sendMessageToCursor(options.content.text);
-        // const params = {
-        //   messageId: options.message_id,
-        //   receiveId: options.chat_id,
-        //   receiveIdType: 'chat_id',
-        //   text: result.text || '',
-        // }
-        // writeLog("本地发送消息（im.v1.message.create）", JSON.stringify(params));
-        // await sendTextMessage(client, params);
+        const result = await sendMessageToCursor(options.content.text);
+        const params = {
+          messageId: options.message_id,
+          receiveId: options.chat_id,
+          receiveIdType: 'chat_id',
+          text: result.text || '',
+        }
+        await sendTextMessage(client, params);
+        writeLog("本地发送消息", JSON.stringify(params));
+      },
+      'im.message.reaction.created_v1': async (data) => {
+        // writeLog("收到消息表情回复", JSON.stringify(data));
+      },
+      'im.message.message_read_v1': async (data) => {
+        // writeLog("收到消息已读", JSON.stringify(data));
+      },
+      'im.message.reaction.deleted_v1': async (data) => {
+        // writeLog("收到消息表情回复删除", JSON.stringify(data));
       },
     }),
   });

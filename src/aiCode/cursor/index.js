@@ -53,8 +53,6 @@ function runAgent(workspace, args) {
   });
 }
 
-let gate = Promise.resolve();
-
 async function sendMessageToCursorImpl(message) {
   const workspace = resolve(process.env.CURSOR_AGENT_WORKSPACE || process.cwd());
   const session = readSession();
@@ -82,10 +80,8 @@ async function sendMessageToCursorImpl(message) {
 }
 
 /** Cursor Agent CLI（`CURSOR_AGENT_BIN`，默认 `agent`）发消息；会话见 `~/.chat-code-bridge/cursor-agent-session.json`。 */
-export async function sendMessageToCursor(text) {
+export const sendMessageToCursor = async (text) => {
   const message = String(text ?? '').trim();
   if (!message) throw new Error('发送 Cursor 的消息不能为空');
-  const done = gate.then(() => sendMessageToCursorImpl(message));
-  gate = done.catch(() => { });
-  return done;
+  return sendMessageToCursorImpl(message);
 }
