@@ -1,6 +1,8 @@
 import * as Lark from '@larksuiteoapi/node-sdk';
 import { readCofig } from '../../../utils/readCofig.js';
 import { sendMessageReaction } from './send-message/sendMessageReaction.js';
+import { sendMessageToCursor } from '../../aiCode/cursor/index.js';
+import { sendTextMessage } from './send-message/sendTextMessage.js';
 
 const config = readCofig();
 
@@ -40,7 +42,7 @@ const getFormattedData = (data) => {
     return {
       chat_type,
       chat_id,
-      content,
+      content: JSON.parse(content),
       message_id,
     }
   }
@@ -56,13 +58,20 @@ export const startFeishuMessageListener = async (bridge) => {
       'im.message.receive_v1': async (data) => {
         if (!isFeishuMessageForThisBot(data)) return;
         const options = getFormattedData(data);
-        sendMessageReaction(client, {
+        if (!options?.content?.text) return;
+        await sendMessageReaction(client, {
           messageId: options.message_id,
-          emojiType: 'THUMBSUP'
-        })
+          emojiType: 'THUMBSUP',
+        });
+        const result = await sendMessageToCursor(options.content.text);
+        sendTextMessage(client, {
+          receiveId: options.chat_id,
+          receiveIdType: 'chat_id',
+          text: result.text,
+        });
       },
       'im.message.reaction.created_v1': async (data) => {
-        console.log(JSON.stringify(data, null, 2))
+        // console.log(JSON.stringify(data, null, 2))
       }
     })
   })
