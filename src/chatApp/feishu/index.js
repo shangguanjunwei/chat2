@@ -47,23 +47,30 @@ export const startFeishuMessageListener = async (bridge) => {
     eventDispatcher: new Lark.EventDispatcher({}).register({
       'im.message.receive_v1': async (data) => {
         if (!isForThisBot(data)) return;
-        writeLog(JSON.stringify(data.message));
         const options = getFormattedData(data);
+        writeLog("收到消息receive_v1", JSON.stringify(options));
         if (!options?.content?.text) return;
-        await sendMessageReaction(client, {
-          messageId: options.message_id,
-          emojiType: 'THUMBSUP',
+
+        client.im.v1.messageReaction.create({
+          path: { message_id: options.message_id },
+          data: {
+            reaction_type: { emoji_type: 'Typing' },
+          },
         });
-        const result = await sendMessageToCursor(options.content.text);
-        const params = {
-          sender: "local_bot",
-          messageId: options.message_id,
-          receiveId: options.chat_id,
-          receiveIdType: 'chat_id',
-          text: result.text || '',
-        }
-        writeLog(JSON.stringify(params));
-        await sendTextMessage(client, params);
+
+        // sendMessageReaction(client, {
+        //   messageId: options.message_id,
+        //   emojiType: 'Typing',
+        // });
+        // const result = await sendMessageToCursor(options.content.text);
+        // const params = {
+        //   messageId: options.message_id,
+        //   receiveId: options.chat_id,
+        //   receiveIdType: 'chat_id',
+        //   text: result.text || '',
+        // }
+        // writeLog("本地发送消息（im.v1.message.create）", JSON.stringify(params));
+        // await sendTextMessage(client, params);
       },
     }),
   });

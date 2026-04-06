@@ -17,23 +17,22 @@ function getTimeText(date) {
   const hh = pad2(date.getHours());
   const mm = pad2(date.getMinutes());
   const ss = pad2(date.getSeconds());
-  return `${hh}:${mm}:${ss}`;
+  const ms = pad2(date.getMilliseconds());
+  return `${hh}:${mm}:${ss}.${ms}`;
 }
 
 /**
  * 将日志写入 ~/.chat-code-bridge/log/YYYY-MM-DD.log
  * @param {string} message
  */
-export const writeLog = (message) => {
+export const writeLog = (prefix, message) => {
   if (typeof message !== 'string') {
     throw new TypeError('writeLog 的入参必须是 string');
   }
-
   const now = new Date();
   const dir = join(homedir(), '.chat-code-bridge', 'log');
   const filePath = join(dir, `${getDateText(now)}.log`);
-  const line = `[${getTimeText(now)}] ${message}\n`;
-
+  const line = `【${getTimeText(now)}】${prefix}: ${message}\n`;
   mkdirSync(dir, { recursive: true });
   appendFileSync(filePath, line, 'utf8');
 };
