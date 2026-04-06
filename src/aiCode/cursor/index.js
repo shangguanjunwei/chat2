@@ -6,16 +6,12 @@ import { join, resolve } from 'node:path';
 const sessionDir = join(homedir(), '.chat-code-bridge');
 const sessionPath = join(sessionDir, 'cursor-agent-session.json');
 
-function getWorkspace() {
-  return resolve(process.env.CURSOR_AGENT_WORKSPACE || process.cwd());
-}
-
 function readSession() {
   try {
     const row = JSON.parse(readFileSync(sessionPath, 'utf8'));
     if (row?.chatId && typeof row.workspace === 'string') return row;
   } catch {
-    // 无文件或 JSON 无效
+    /* ignore */
   }
   return null;
 }
@@ -60,7 +56,7 @@ function runAgent(workspace, args) {
 let gate = Promise.resolve();
 
 async function sendMessageToCursorImpl(message) {
-  const workspace = getWorkspace();
+  const workspace = resolve(process.env.CURSOR_AGENT_WORKSPACE || process.cwd());
   const session = readSession();
   let chatId =
     session && session.workspace === workspace ? session.chatId : null;
@@ -90,6 +86,6 @@ export async function sendMessageToCursor(text) {
   const message = String(text ?? '').trim();
   if (!message) throw new Error('发送 Cursor 的消息不能为空');
   const done = gate.then(() => sendMessageToCursorImpl(message));
-  gate = done.catch(() => {});
+  gate = done.catch(() => { });
   return done;
 }
