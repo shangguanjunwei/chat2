@@ -1,34 +1,23 @@
+import { readFileSync } from 'node:fs';
 import readline from 'node:readline';
 import readlinePromises from 'node:readline/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { stdin as input, stdout as output } from 'node:process';
 
 /** @typedef {{ key: string, label: string, env: { appId: string, appSecret: string, domain: string } }} BridgeDefinition */
 
+const OPTIONS_PATH = join(dirname(fileURLToPath(import.meta.url)), '../../config/chat-options.json');
+
 /** @type {BridgeDefinition[]} */
-export const BRIDGE_OPTIONS = [
-  {
-    key: 'feishu',
-    label: '飞书',
-    env: {
-      appId: 'FEISHU_APP_ID',
-      appSecret: 'FEISHU_APP_SECRET',
-      domain: 'FEISHU_DOMAIN',
-    },
-  },
-  {
-    key: 'lark',
-    label: 'Lark（国际版）',
-    env: {
-      appId: 'LARK_APP_ID',
-      appSecret: 'LARK_APP_SECRET',
-      domain: 'LARK_DOMAIN',
-    },
-  },
-];
+export const BRIDGE_OPTIONS = JSON.parse(readFileSync(OPTIONS_PATH, 'utf8'));
 
-const MENU_LINE_COUNT = () => 1 + BRIDGE_OPTIONS.length;
+const menuLineCount = () => 1 + BRIDGE_OPTIONS.length;
 
-/** @returns {Promise<BridgeDefinition>} */
+/**
+ * 非 TTY：按序号选择 app。
+ * @returns {Promise<BridgeDefinition>}
+ */
 const selectBridgeByNumber = async () => {
   const rl = readlinePromises.createInterface({ input, output });
   try {
@@ -48,14 +37,14 @@ const selectBridgeByNumber = async () => {
 };
 
 /**
- * chatApp 入口：选择桥接的聊天工具（TTY 下 ↑↓ + Enter，否则输入序号）。
+ * 选择桥接的聊天 app（TTY：↑↓ + Enter；否则输入序号）。
  * @returns {Promise<BridgeDefinition>}
  */
-export const selectBridge = () => {
+export const selectBridge = async () => {
   if (!input.isTTY) {
     return selectBridgeByNumber();
   }
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     let index = 0;
 
     const draw = () => {
@@ -67,7 +56,7 @@ export const selectBridge = () => {
     };
 
     const redraw = () => {
-      output.write(`\x1b[${MENU_LINE_COUNT()}A`);
+      output.write(`\x1b[${menuLineCount()}A`);
       draw();
     };
 
