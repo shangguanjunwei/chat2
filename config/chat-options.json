@@ -1,0 +1,20 @@
+[
+  {
+    "key": "feishu",
+    "label": "飞书",
+    "env": {
+      "appId": "FEISHU_APP_ID",
+      "appSecret": "FEISHU_APP_SECRET",
+      "domain": "FEISHU_DOMAIN"
+    }
+  },
+  {
+    "key": "lark",
+    "label": "Lark（国际版）",
+    "env": {
+      "appId": "LARK_APP_ID",
+      "appSecret": "LARK_APP_SECRET",
+      "domain": "LARK_DOMAIN"
+    }
+  }
+]

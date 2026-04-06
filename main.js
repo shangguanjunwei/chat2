@@ -1,52 +1,75 @@
-import * as Lark from '@larksuiteoapi/node-sdk';
-import { initBridgeConfiguration } from './src/chatApp/lark-cli/env-config/init.js';
+import {
+  readFileSync,
+  mkdirSync,
+  writeFileSync,
+  existsSync,
+} from 'node:fs';
+import { dirname, join } from 'node:path';
+import { homedir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { writeConfig } from './utils/writeConfig.js';
+import { readCofig } from './utils/readCofig.js';
 
-/** @param {{ appId: string, appSecret: string, domain: string }} baseConfig */
-const startFeishuFamilyMessageListener = (baseConfig) => {
-  const client = new Lark.Client(baseConfig);
-  const wsClient = new Lark.WSClient({
-    ...baseConfig,
-    loggerLevel: Lark.LoggerLevel.debug,
-  });
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CONFIG_PATH = join(__dirname, 'config', 'chat-code-bridge.json');
 
-  wsClient.start({
-    eventDispatcher: new Lark.EventDispatcher({}).register({
-      'im.message.receive_v1': async (data) => {
-        const {
-          message: { message_id, chat_id, content },
-        } = data;
-        await client.im.v1.messageReaction.create({
-          path: { message_id },
-          data: { reaction_type: { emoji_type: 'Get' } },
-        });
-        await client.im.v1.messageReaction.create({
-          path: { message_id },
-          data: { reaction_type: { emoji_type: 'Typing' } },
-        });
-        await client.im.v1.message.create({
-          params: { receive_id_type: 'chat_id' },
-          data: {
-            receive_id: chat_id,
-            content: Lark.messageCard.defaultCard({
-              title: `回复： ${JSON.parse(content).text}`,
-              content: '新年好',
-            }),
-            msg_type: 'interactive',
-          },
-        });
-      },
-    }),
-  });
+/**
+ * @typedef {{ type: string, name: string, children?: unknown[], content?: unknown }} TreeNode
+ */
 
-  console.log('消息监听服务已启动（WebSocket，im.message.receive_v1）。');
+/**
+ * @param {string} parentAbs
+ * @param {TreeNode} node
+ */
+const applyTreeNode = (parentAbs, node) => {
+  if (!node?.type || !node?.name) {
+    throw new Error('配置节点缺少 type 或 name');
+  }
+
+  const abs = join(parentAbs, node.name);
+
+  if (node.type === 'dir') {
+    mkdirSync(abs, { recursive: true });
+    const children = node.children;
+    if (Array.isArray(children)) {
+      for (const child of children) {
+        applyTreeNode(abs, /** @type {TreeNode} */(child));
+      }
+    }
+    return;
+  }
+
+  if (node.type === 'file') {
+    if (existsSync(abs)) {
+      return;
+    }
+    mkdirSync(dirname(abs), { recursive: true });
+    let body;
+    const { content } = node;
+    if (content === undefined || content === null) {
+      body = '';
+    } else if (typeof content === 'string') {
+      body = content;
+    } else {
+      body = `${JSON.stringify(content, null, 2)}\n`;
+    }
+    writeFileSync(abs, body, 'utf8');
+    return;
+  }
+
+  throw new Error(`不支持的节点类型：${node.type}`);
 };
 
-const main = async () => {
-  const { appId, appSecret, domain } = await initBridgeConfiguration();
-  startFeishuFamilyMessageListener({ appId, appSecret, domain });
+const main = () => {
+  const raw = readFileSync(CONFIG_PATH, 'utf8');
+  const root = /** @type {TreeNode} */ (JSON.parse(raw));
+  applyTreeNode(homedir(), root);
+  console.log(`已按配置同步到用户主目录：${join(homedir(), root.name)}`);
 };
 
-main().catch((err) => {
+try {
+  main();
+} catch (err) {
   console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;
-});
+}

@@ -1,4 +1,4 @@
-# lark-code-bridge
+# chat-code-bridge
 
 飞书（Lark）与代码侧能力桥接的 Node 项目：使用 `@larksuiteoapi/node-sdk` 处理即时消息等场景。
 
@@ -7,7 +7,7 @@
 ## 目录结构说明
 
 ```
-lark-code-bridge2/
+chat-code-bridge2/
 ├── main.js                 # 应用入口：创建 Lark Client / WSClient，订阅消息并回复（开发时可 `npm run dev`）
 ├── main copy 2.js          # main.js 的副本/备份，便于本地对照或实验（非正式入口）
 ├── package.json            # 项目元数据与脚本（ES Module：`"type": "module"`）

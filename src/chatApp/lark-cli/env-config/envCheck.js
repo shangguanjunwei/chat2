@@ -52,7 +52,7 @@ const isAllPresent = (values) =>
 const persistEnvViaShellScript = (envKeyNames, values, cwd = process.cwd()) => {
   const absPath = join(cwd, BRIDGE_ENV_SHELL_FILENAME);
   const body = [
-    '# 由 lark-code-bridge 生成，勿提交仓库。',
+    '# 由 chat-code-bridge 生成，勿提交仓库。',
     '# 在终端加载到当前 shell 环境变量：  source ./.lark-bridge-env.sh',
     `export ${envKeyNames.appId}=${shSingleQuoted(values.appId)}`,
     `export ${envKeyNames.appSecret}=${shSingleQuoted(values.appSecret)}`,

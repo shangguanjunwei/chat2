@@ -1,0 +1,24 @@
+{
+  "type": "dir",
+  "name": ".chat-code-bridge",
+  "children": [
+    {
+      "type": "file",
+      "name": "chat-code-bridge.json",
+      "content": {
+        "chatApp": {
+          "feishu": {
+            "appId": "",
+            "appSecret": "",
+            "domain": "https://open.feishu.cn"
+          },
+          "lark": {
+            "appId": "",
+            "appSecret": "",
+            "domain": "https://open.larksuite.com"
+          }
+        }
+      }
+    }
+  ]
+}
