@@ -1,0 +1,14 @@
+{
+  "stylelint.validate": [
+    "css",
+    "less",
+    "postcss",
+    "scss",
+    "vue",
+    "svelte"
+  ],
+  "files.associations": {
+    "*.js": "javascript",
+    "*.json": "json"
+  }
+}

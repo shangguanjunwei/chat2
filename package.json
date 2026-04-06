@@ -1,0 +1,21 @@
+{
+  "name": "lark-code-bridge",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "lark-cli",
+    "coder",
+    "bridge"
+  ],
+  "license": "MIT",
+  "author": "524013038@qq.com",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node main.js"
+  },
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.60.0"
+  }
+}
