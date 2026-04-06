@@ -18,6 +18,10 @@
             "appId": "",
             "appSecret": "",
             "domain": "https://open.larksuite.com"
+          },
+          "wecom": {
+            "botId": "",
+            "secret": ""
           }
         }
       }

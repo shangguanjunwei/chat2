@@ -34,5 +34,19 @@
         "label": "Domain（国际版示例 https://open.larksuite.com）"
       }
     ]
+  },
+  {
+    "key": "wecom",
+    "label": "企业微信",
+    "needConfigKeys": [
+      {
+        "key": "botId",
+        "label": "botId"
+      },
+      {
+        "key": "secret",
+        "label": "secret"
+      }
+    ]
   }
 ]
