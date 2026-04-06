@@ -11,9 +11,7 @@ const CONFIG_PATH = join(__dirname, 'config', 'chat-code-bridge.json');
 
 const main = async () => {
   const raw = readFileSync(CONFIG_PATH, 'utf8');
-  const root = /** @type {import('./utils/applyTreeNode.js').TreeNode} */ (
-    JSON.parse(raw)
-  );
+  const root = /** @type {Parameters<typeof applyTreeNode>[1]} */ (JSON.parse(raw));
   applyTreeNode(homedir(), root);
   const bridge = await selectAppBridge();
   console.log(JSON.stringify(bridge, null, 2));

@@ -1,9 +1,4 @@
-/**
- * im.v1.message.create，msg_type: text
- *
- * @param {import('@larksuiteoapi/node-sdk').Client} client
- * @param {{ receiveId: string, receiveIdType?: string, text: string }} options
- */
+/** im.v1.message.create，msg_type: text */
 export const sendTextMessage = async (client, options) => {
   const { receiveId, receiveIdType = 'chat_id', text } = options;
   if (!receiveId || text == null) {

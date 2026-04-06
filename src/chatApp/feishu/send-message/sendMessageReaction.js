@@ -1,9 +1,4 @@
-/**
- * im.v1.messageReaction.create（需相应 im:message 表情权限）
- *
- * @param {import('@larksuiteoapi/node-sdk').Client} client
- * @param {{ messageId: string, emojiType: string }} options
- */
+/** im.v1.messageReaction.create */
 export const sendMessageReaction = async (client, options) => {
   const { messageId, emojiType } = options;
   if (!messageId || !emojiType) {

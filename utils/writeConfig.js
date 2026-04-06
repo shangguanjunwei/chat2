@@ -2,7 +2,6 @@ import { writeFileSync } from 'node:fs';
 import { readCofig } from './readCofig.js';
 import { getUserBridgeConfigPath } from './getUserBridgeConfigPath.js';
 
-/** 点路径赋值，仅补齐路径上的中间对象 */
 const setByDotPath = (obj, dotPath, value) => {
   const parts = dotPath.split('.').filter(Boolean);
   if (parts.length === 0) {
@@ -20,11 +19,7 @@ const setByDotPath = (obj, dotPath, value) => {
   cur[parts[parts.length - 1]] = value;
 };
 
-/**
- * 合并写入 `~/.chat-code-bridge/chat-code-bridge.json`（键为点路径，如 `chatApp.feishu.appId`）。
- *
- * @param {Record<string, unknown>} partial
- */
+/** 合并写入用户目录下 `chat-code-bridge.json`；键为点路径（如 `chatApp.feishu.appId`）。 */
 export const writeConfig = (partial) => {
   if (!partial || typeof partial !== 'object' || Array.isArray(partial)) {
     throw new Error('入参应为普通对象');

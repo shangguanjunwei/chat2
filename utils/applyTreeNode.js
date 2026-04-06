@@ -7,12 +7,7 @@ import { join, dirname } from 'node:path';
 
 /** @typedef {{ type: string, name: string, children?: unknown[], content?: unknown }} TreeNode */
 
-/**
- * 按配置树在用户目录下创建目录/缺省文件（已存在文件不覆盖）。
- *
- * @param {string} parentAbs
- * @param {TreeNode} node
- */
+/** 按配置树在用户目录创建目录与缺省文件（已存在文件不覆盖）。 */
 export const applyTreeNode = (parentAbs, node) => {
   if (!node?.type || !node?.name) {
     throw new Error('配置节点缺少 type 或 name');

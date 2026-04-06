@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { getUserBridgeConfigPath } from './getUserBridgeConfigPath.js';
 
-/** @returns {Record<string, unknown>} */
+/** 读取并解析用户目录下 `chat-code-bridge.json`。 */
 export const readCofig = () => {
   const filePath = getUserBridgeConfigPath();
   const raw = readFileSync(filePath, 'utf8');

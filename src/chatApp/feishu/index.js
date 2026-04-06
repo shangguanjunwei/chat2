@@ -3,7 +3,7 @@ import { sendMessageReaction } from './send-message/sendMessageReaction.js';
 import { sendMessageToCursor } from '../../aiCode/cursor/index.js';
 import { sendTextMessage } from './send-message/sendTextMessage.js';
 
-/** 去重 message_id，减轻平台重试导致的重复 Agent 调用 */
+/** 按 message_id 去重，避免重试导致重复跑 Agent */
 const processedMessageIds = new Set();
 const PROCESSED_ID_MAX = 500;
 
@@ -19,13 +19,12 @@ function consumeMessageIdOnce(messageId) {
 
 export const startFeishuMessageListener = async (bridge) => {
   const { appId, appSecret, domain } = bridge;
-  const botAppId = appId;
 
   const isForThisBot = (data) => {
     const { chat_type, mentions = [] } = data.message;
     if (chat_type === 'p2p') return true;
     if (chat_type === 'group') {
-      return mentions.some((m) => m.bot_info.app_id === botAppId);
+      return mentions.some((m) => m.bot_info.app_id === appId);
     }
     return false;
   };
@@ -39,7 +38,6 @@ export const startFeishuMessageListener = async (bridge) => {
       mentions = [],
     } = data.message;
     if (chat_type === 'group') {
-      if (!mentions.some((m) => m.bot_info.app_id === botAppId)) return null;
       let { text } = JSON.parse(content);
       for (const mention of mentions) {
         text = text.replace(`${mention.key}`, '');

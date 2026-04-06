@@ -1,16 +1,6 @@
 import * as Lark from '@larksuiteoapi/node-sdk';
 
-/**
- * im.v1.message.create，msg_type: interactive。`content` 与 `defaultCard` 二选一。
- *
- * @param {import('@larksuiteoapi/node-sdk').Client} client
- * @param {{
- *   receiveId: string,
- *   receiveIdType?: string,
- *   content?: string | object,
- *   defaultCard?: { title: string, content: string },
- * }} options
- */
+/** im.v1.message.create，msg_type: interactive；`content` 与 `defaultCard` 二选一 */
 export const sendInteractiveCardMessage = async (client, options) => {
   const { receiveId, receiveIdType = 'chat_id', content, defaultCard: dc } = options;
   if (!receiveId) {

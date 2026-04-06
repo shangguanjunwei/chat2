@@ -9,7 +9,6 @@ import { writeConfig } from '../../utils/writeConfig.js';
 
 /**
  * @typedef {{ key: string, label: string, needConfigKeys: Array<{ key: string, label: string, defaultValue?: string }> }} BridgeDefinition
- * @typedef {BridgeDefinition & { appId: string, appSecret: string, domain: string }} AppBridgeSelection
  */
 
 const OPTIONS_PATH = join(dirname(fileURLToPath(import.meta.url)), '../../config/chat-options.json');
@@ -126,12 +125,7 @@ const promptPlatformCredentials = async (bridge, input, output) => {
   }
 };
 
-/**
- * 选择桥接平台：优先读用户目录配置，缺项则交互补全并写回。
- *
- * @param {{ stdin?: import('node:stream').Readable, stdout?: import('node:stream').Writable }} [io]
- * @returns {Promise<AppBridgeSelection>}
- */
+/** 选择桥接：优先用户目录配置，缺项则交互补全并写回。 */
 export const selectAppBridge = async (io = {}) => {
   const input = io.stdin ?? defaultInput;
   const output = io.stdout ?? defaultOutput;

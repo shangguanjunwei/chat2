@@ -15,7 +15,7 @@ function readSession() {
     const row = JSON.parse(readFileSync(sessionPath, 'utf8'));
     if (row?.chatId && typeof row.workspace === 'string') return row;
   } catch {
-    /* 无文件或 JSON 无效 */
+    // 无文件或 JSON 无效
   }
   return null;
 }
@@ -29,13 +29,9 @@ function writeSession(workspace, chatId) {
   );
 }
 
-function getAgentBin() {
-  return process.env.CURSOR_AGENT_BIN || 'agent';
-}
-
 function runAgent(workspace, args) {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(getAgentBin(), args, {
+    const child = spawn(process.env.CURSOR_AGENT_BIN || 'agent', args, {
       cwd: workspace,
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -89,12 +85,7 @@ async function sendMessageToCursorImpl(message) {
   return { text: out.trim(), chatId };
 }
 
-/**
- * 经本机 Cursor Agent CLI（`agent`，可用 `CURSOR_AGENT_BIN`）发消息并复用会话。
- * 会话：`~/.chat-code-bridge/cursor-agent-session.json`；工作区：`CURSOR_AGENT_WORKSPACE` 或 `cwd`。
- *
- * @param {string} text
- */
+/** Cursor Agent CLI（`CURSOR_AGENT_BIN`，默认 `agent`）发消息；会话见 `~/.chat-code-bridge/cursor-agent-session.json`。 */
 export async function sendMessageToCursor(text) {
   const message = String(text ?? '').trim();
   if (!message) throw new Error('发送 Cursor 的消息不能为空');

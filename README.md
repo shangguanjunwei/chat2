@@ -10,40 +10,40 @@
 
 ```
 chat-code-bridge/
-├── main.js                      # 应用入口：读取 config、应用用户目录占位符、选择桥接应用、启动飞书消息监听（开发：`npm run dev`）
-├── package.json                 # 项目元数据与脚本（ES Module：`"type": "module"`）
-├── package-lock.json            # 依赖锁定文件
-├── README.md                    # 本说明
-├── .gitignore                   # Git 忽略规则
-├── config/                      # 运行时配置（桥接树、聊天选项等）
-│   ├── chat-code-bridge.json    # 桥接配置根（可被 applyTreeNode 展开到用户目录等）
-│   └── chat-options.json        # 可选桥接应用列表与交互菜单所需元数据
-├── utils/                       # 通用工具（配置路径、读写、树节点展开）
-│   ├── applyTreeNode.js
+├── main.js                      # 入口：读 config、applyTreeNode、selectAppBridge、启动飞书监听（`npm run dev`）
+├── package.json                 # 元数据与脚本（ES Module：`"type": "module"`）
+├── package-lock.json
+├── README.md
+├── .gitignore
+├── config/
+│   ├── chat-code-bridge.json    # 桥接配置树（可被 applyTreeNode 展开到用户目录）
+│   └── chat-options.json        # 可选桥接列表与菜单所需字段
+├── utils/
+│   ├── applyTreeNode.js         # 按配置树创建目录/缺省文件
 │   ├── getUserBridgeConfigPath.js
-│   ├── readCofig.js
+│   ├── readCofig.js             # 读 ~/.chat-code-bridge/chat-code-bridge.json
 │   └── writeConfig.js
-├── .vscode/                     # VS Code / Cursor 工作区设置（编辑器相关）
+├── .vscode/
 │   └── settings.json
 ├── src/
-│   ├── chatApp/                 # 聊天应用侧：桥接选择、飞书 / Lark IM 封装
-│   │   ├── index.js             # 选择并装配当前使用的 AppBridge（读配置、交互菜单等）
-│   │   ├── feishu/              # 飞书场景入口与能力封装
-│   │   │   ├── index.js         # 飞书消息监听等入口
-│   │   │   └── send-message/    # 发送消息相关封装（与 lark 目录下模块职责对称）
+│   ├── chatApp/
+│   │   ├── index.js             # selectAppBridge：菜单选桥接、读/写用户配置
+│   │   ├── feishu/
+│   │   │   ├── index.js         # startFeishuMessageListener：WS + 消息 → Cursor → 回写
+│   │   │   └── send-message/    # 实现：文本 / 卡片 / 表情
 │   │   │       ├── sendTextMessage.js
 │   │   │       ├── sendInteractiveCardMessage.js
 │   │   │       └── sendMessageReaction.js
-│   │   └── lark/                # Lark 命名空间下的同类能力（与 feishu 并列，便于区分场景或迁移）
-│   │       ├── index.js
-│   │       └── send-message/
+│   │   └── lark/
+│   │       ├── index.js         # 再导出 startLarkMessageListener（同 feishu）
+│   │       └── send-message/    # 自 feishu/send-message 再导出（同上）
 │   │           ├── sendTextMessage.js
 │   │           ├── sendInteractiveCardMessage.js
 │   │           └── sendMessageReaction.js
-│   └── aiCode/                  # 与 AI 编程 / Cursor 侧对接的代码（与 chatApp 解耦）
+│   └── aiCode/
 │       └── cursor/
-│           └── index.js         # Cursor 侧会话与消息处理等
-└── node_modules/                # npm 依赖（以 package.json 为准；勿手写业务到此目录）
+│           └── index.js         # sendMessageToCursor（Cursor Agent CLI）
+└── node_modules/                # npm 依赖（勿提交业务代码）
 ```
 
 ### 各目录用途摘要
@@ -52,11 +52,12 @@ chat-code-bridge/
 | --- | --- |
 | 项目根目录 | 入口脚本、包配置、说明文档 |
 | `config/` | `chat-code-bridge.json` 桥接树；`chat-options.json` 桥接选项与菜单 |
-| `utils/` | 配置路径解析、读写、配置树中用户目录类占位符展开 |
-| `src/chatApp/` | 桥接选择、飞书与 Lark 两套 IM 封装入口 |
-| `src/chatApp/feishu/`、`src/chatApp/lark/` | 各自 `index.js` 为场景入口；`send-message/` 为发消息、卡片、表情等原子能力 |
-| `src/aiCode/cursor/` | 与 Cursor / 代码智能体侧交互的逻辑 |
-| `.vscode/` | 编辑器配置，可按个人习惯调整 |
+| `utils/` | 配置路径、读写 `~/.chat-code-bridge/chat-code-bridge.json`、树节点展开 |
+| `src/chatApp/` | 桥接选择、飞书监听与消息发送封装 |
+| `src/chatApp/feishu/` | 监听与消息发送的**实现**（`send-message/`） |
+| `src/chatApp/lark/` | 与 feishu 同入口逻辑；`send-message` 为再导出，便于按命名空间引用 |
+| `src/aiCode/cursor/` | Cursor Agent CLI 桥接（`sendMessageToCursor`） |
+| `.vscode/` | 编辑器配置 |
 
 ---
 
@@ -107,7 +108,7 @@ flowchart TB
 
 （图中 `agent CLI` 步骤对应环境变量 `CURSOR_AGENT_BIN`，工作区对应 `CURSOR_AGENT_WORKSPACE`。）
 
-`src/chatApp/lark/` 提供与 `feishu/send-message` 对称的发送能力封装；**当前 `main.js` 仅挂载飞书监听**，未单独启动 `lark/index.js` 的同类流程时，上图中「长连接入口」以 `feishu/index.js` 为准。
+`src/chatApp/lark/index.js` 将 `startFeishuMessageListener` 再导出为 `startLarkMessageListener`；`lark/send-message` 自 `feishu/send-message` 再导出。**当前 `main.js` 仅调用 `startFeishuMessageListener`**，未单独启动 `startLarkMessageListener` 时，长连接入口以 `feishu/index.js` 为准。
 
 ### 端到端时序（参与者视角）
 
@@ -135,7 +136,7 @@ sequenceDiagram
 
 ### 消息发送（`src/chatApp/feishu/send-message/` 与 `src/chatApp/lark/send-message/`）
 
-两套目录下模块名与职责一致，便于在不同入口或迁移阶段复用；基于 `@larksuiteoapi/node-sdk` 的 `Client`，将常用 IM 能力封装为异步函数。**调用方自行创建并传入已配置 `appId` / `appSecret`（及 `domain` 等）的 `Client`**，模块内不写密钥。
+实现在 **`feishu/send-message/`**；`lark/send-message` 为再导出，API 相同。基于 `@larksuiteoapi/node-sdk` 的 `Client` 封装为异步函数；**调用方自行传入已配置 `appId` / `appSecret` / `domain` 的 `Client`**，模块内不写密钥。
 
 | 模块 | 导出 | 能力简述 |
 | --- | --- | --- |
@@ -151,6 +152,7 @@ sequenceDiagram
 
 | 日期 | 说明 |
 | --- | --- |
+| 2026-04-06 | `README.md` 目录结构按当前仓库更新：`lark/` 为再导出、`feishu/` 为发送实现；各目录摘要与「功能说明」同步。 |
 | 2026-04-06 | `README.md` 文首增加快速导航；「数据流」补充参与者时序图（sequenceDiagram）。 |
 | 2026-04-06 | `README.md` 新增「数据流」：启动链、飞书 WS → Cursor Agent CLI → 回写文本；附 Mermaid 示意图；说明 `lark/` 与当前入口关系。 |
 | 2026-04-06 | `README.md` 同步整体目录结构：`config/`、`utils/`、`feishu`/`lark` 双轨 `send-message`、`aiCode/cursor`；更新入口与表格说明；移除已不存在的 `lark-cli`/`cursor-cli` 与 `main copy 2.js` 描述。 |
