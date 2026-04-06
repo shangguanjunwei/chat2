@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { applyTreeNode } from './utils/applyTreeNode.js';
 import { selectAppBridge } from './src/chatApp/index.js';
+import { startFeishuMessageListener } from './src/chatApp/feishu/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONFIG_PATH = join(__dirname, 'config', 'chat-code-bridge.json');
@@ -16,6 +17,7 @@ const main = async () => {
   applyTreeNode(homedir(), root);
   const bridge = await selectAppBridge();
   console.log(JSON.stringify(bridge, null, 2));
+  startFeishuMessageListener(bridge);
 };
 
 try {
