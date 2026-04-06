@@ -1,8 +1,35 @@
 import * as Lark from '@larksuiteoapi/node-sdk';
 import { sendMessageReaction } from './send-message/sendMessageReaction.js';
 import { sendMessageToCursor } from '../../aiCode/cursor/index.js';
-import { sendTextMessage } from './send-message/sendTextMessage.js';
-import { writeLog } from '../../../utils/writeLog.js';
+import { writeLog } from 
+
+const getFormattedData = (data) => {
+  const { chat_type, chat_id, message_id } = data.message;
+  const content = JSON.parse(data.message.content);
+  if (chat_type === 'group') {
+    const { mentions = [] } = data.message;
+    let { text } = content;
+    for (const mention of mentions) {
+      text = text.replace(`${mention.key}`, '');
+    }
+    return {
+      chat_type,
+      chat_id,
+      content: { text: text.trim() },
+      message_id,
+    };
+  }
+  if (chat_type === 'p2p') {
+    return {
+      chat_type,
+      chat_id,
+      content: content,
+      message_id,
+    };
+  }
+  return null;
+};
+
 
 export const startFeishuMessageListener = async (bridge) => {
   const { appId, appSecret, domain } = bridge;
@@ -16,40 +43,17 @@ export const startFeishuMessageListener = async (bridge) => {
     return false;
   };
 
-  const getFormattedData = (data) => {
-    const { chat_type, chat_id, content, message_id } = data.message;
-    if (chat_type === 'group') {
-      const { mentions = [] } = data.message;
-      let { text } = JSON.parse(content);
-      for (const mention of mentions) {
-        text = text.replace(`${mention.key}`, '');
-      }
-      return {
-        chat_type,
-        chat_id,
-        content: { text: text.trim() },
-        message_id,
-      };
-    }
-    if (chat_type === 'p2p') {
-      return {
-        chat_type,
-        chat_id,
-        content: JSON.parse(content),
-        message_id,
-      };
-    }
-    return null;
-  };
-
   const client = new Lark.Client({ appId, appSecret, domain });
   new Lark.WSClient({
     appId,
     appSecret,
-    domain
+    domain,
+    disableTokenCache: true,
+    appType: Lark.AppType.SelfBuild,
   }).start({
     eventDispatcher: new Lark.EventDispatcher({}).register({
       'im.message.receive_v1': async (data) => {
+        // 需要在3秒内回复消息，否则会超时，触发重试，导致死循环
         if (!isForThisBot(data)) return;
         writeLog("监听到消息", JSON.stringify(data));
         const options = getFormattedData(data);
@@ -58,15 +62,7 @@ export const startFeishuMessageListener = async (bridge) => {
           messageId: options.message_id,
           emojiType: 'Typing',
         });
-        const result = await sendMessageToCursor(options.content.text);
-        const params = {
-          messageId: options.message_id,
-          receiveId: options.chat_id,
-          receiveIdType: 'chat_id',
-          text: result.text || '',
-        }
-        await sendTextMessage(client, params);
-        writeLog("本地发送消息", JSON.stringify(params));
+        sendMessageToCursor(client, options);
       },
       'im.message.reaction.created_v1': async (data) => {
         // writeLog("收到消息表情回复", JSON.stringify(data));
