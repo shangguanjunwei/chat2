@@ -1,7 +1,7 @@
 import * as Lark from '@larksuiteoapi/node-sdk';
 import { sendMessageReaction } from './send-message/sendMessageReaction.js';
 import { sendMessageToCursor } from '../../aiCode/cursor/index.js';
-import { writeLog } from 
+import { writeLog } from '../../../utils/writeLog.js';
 
 const getFormattedData = (data) => {
   const { chat_type, chat_id, message_id } = data.message;
