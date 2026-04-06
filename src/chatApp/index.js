@@ -3,9 +3,15 @@ import readline from 'node:readline';
 import readlinePromises from 'node:readline/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { stdin as input, stdout as output } from 'node:process';
+import { stdin as defaultInput, stdout as defaultOutput } from 'node:process';
+import { readCofig } from '../../utils/readCofig.js';
+import { writeConfig } from '../../utils/writeConfig.js';
 
 /** @typedef {{ key: string, label: string, env: { appId: string, appSecret: string, domain: string } }} BridgeDefinition */
+
+/**
+ * @typedef {BridgeDefinition & { appId: string, appSecret: string, domain: string }} AppBridgeSelection
+ */
 
 const OPTIONS_PATH = join(dirname(fileURLToPath(import.meta.url)), '../../config/chat-options.json');
 
@@ -13,12 +19,25 @@ const OPTIONS_PATH = join(dirname(fileURLToPath(import.meta.url)), '../../config
 export const BRIDGE_OPTIONS = JSON.parse(readFileSync(OPTIONS_PATH, 'utf8'));
 
 const menuLineCount = () => 1 + BRIDGE_OPTIONS.length;
+const readCredentialsFromUserFile = (bridge) => {
+  const data = readCofig();
+  const creds = {};
+  for (const key of bridge.needConfigKeys) {
+    const value = data.chatApp[`${bridge.key}`][`${key.key}`];
+    if (!value) {
+      return null;
+    }
+    creds[`${key.key}`] = value;
+  }
+  return creds;
+};
 
 /**
- * 非 TTY：按序号选择 app。
+ * @param {import('node:stream').Readable} input
+ * @param {import('node:stream').Writable} output
  * @returns {Promise<BridgeDefinition>}
  */
-const selectBridgeByNumber = async () => {
+const selectBridgeByNumber = async (input, output) => {
   const rl = readlinePromises.createInterface({ input, output });
   try {
     output.write('当前非交互式 TTY，请用序号选择：\n');
@@ -37,14 +56,12 @@ const selectBridgeByNumber = async () => {
 };
 
 /**
- * 选择桥接的聊天 app（TTY：↑↓ + Enter；否则输入序号）。
+ * @param {import('node:stream').Readable} input
+ * @param {import('node:stream').Writable} output
  * @returns {Promise<BridgeDefinition>}
  */
-export const selectBridge = async () => {
-  if (!input.isTTY) {
-    return selectBridgeByNumber();
-  }
-  return await new Promise((resolve) => {
+const selectBridgeInteractive = async (input, output) =>
+  await new Promise((resolve) => {
     let index = 0;
 
     const draw = () => {
@@ -98,4 +115,61 @@ export const selectBridge = async () => {
 
     input.on('keypress', onKeypress);
   });
+
+/**
+ * @param {BridgeDefinition} bridge
+ * @param {import('node:stream').Readable} input
+ * @param {import('node:stream').Writable} output
+ * @returns {Promise<{ appId: string, appSecret: string, domain: string }>}
+ */
+const promptPlatformCredentials = async (bridge, input, output) => {
+  const rl = readlinePromises.createInterface({ input, output });
+  const creds = {};
+  try {
+    for (const key of bridge.needConfigKeys) {
+      const value = await rl.question(`${key.label}: \n`);
+      if (!value && key.defaultValue) {
+        value = key.defaultValue;
+      }
+      if (!value) {
+        throw new Error(`${key.label} 不能为空`);
+      }
+      creds[key.key] = value;
+    }
+    return creds;
+  } finally {
+    rl.close();
+  }
+};
+
+/**
+ * 选择 app 平台；优先使用用户目录配置（readCofig），若无则交互输入并写回配置文件。
+ * 交互补全的配置会写回用户目录配置文件。
+ *
+ * @param {{ stdin?: import('node:stream').Readable, stdout?: import('node:stream').Writable }} [io]
+ * @returns {Promise<AppBridgeSelection>}
+ */
+export const selectAppBridge = async (io = {}) => {
+  const input = io.stdin ?? defaultInput;
+  const output = io.stdout ?? defaultOutput;
+
+  const bridge = input.isTTY
+    ? await selectBridgeInteractive(input, output)
+    : await selectBridgeByNumber(input, output);
+
+  let fromFile = readCredentialsFromUserFile(bridge);
+  if (!fromFile) {
+    const creds = await promptPlatformCredentials(bridge, input, output);
+    fromFile = creds;
+  }
+  const config = {};
+  for (const key of bridge.needConfigKeys) {
+    config[`chatApp.${bridge.key}.${key.key}`] = fromFile[key.key];
+  }
+  writeConfig({
+    ...config,
+    "appBridge": bridge.key,
+  });
+  delete bridge.needConfigKeys;
+  return { ...bridge, ...fromFile };
 };

@@ -6,6 +6,8 @@
       "type": "file",
       "name": "chat-code-bridge.json",
       "content": {
+        "appBridge": "",
+        "aiCodeBridge": "",
         "chatApp": {
           "feishu": {
             "appId": "",

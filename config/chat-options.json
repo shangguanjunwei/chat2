@@ -2,19 +2,37 @@
   {
     "key": "feishu",
     "label": "飞书",
-    "env": {
-      "appId": "FEISHU_APP_ID",
-      "appSecret": "FEISHU_APP_SECRET",
-      "domain": "FEISHU_DOMAIN"
-    }
+    "needConfigKeys": [
+      {
+        "key": "appId",
+        "label": "App ID"
+      },
+      {
+        "key": "appSecret",
+        "label": "App Secret"
+      },
+      {
+        "key": "domain",
+        "label": "Domain（飞书示例 https://open.feishu.cn）"
+      }
+    ]
   },
   {
     "key": "lark",
-    "label": "Lark（国际版）",
-    "env": {
-      "appId": "LARK_APP_ID",
-      "appSecret": "LARK_APP_SECRET",
-      "domain": "LARK_DOMAIN"
-    }
+    "label": "Lark（飞书国际版）",
+    "needConfigKeys": [
+      {
+        "key": "appId",
+        "label": "App ID"
+      },
+      {
+        "key": "appSecret",
+        "label": "App Secret"
+      },
+      {
+        "key": "domain",
+        "label": "Domain（国际版示例 https://open.larksuite.com）"
+      }
+    ]
   }
 ]

@@ -3,7 +3,7 @@ import {
   writeFileSync,
   existsSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 
 /**
  * @typedef {{ type: string, name: string, children?: unknown[], content?: unknown }} TreeNode
