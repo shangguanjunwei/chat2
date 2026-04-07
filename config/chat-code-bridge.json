@@ -8,7 +8,11 @@
       "content": {
         "appBridge": "",
         "aiCodeBridge": "",
-        "projectWorkspace": "",
+        "currentProject": {
+          "key": "",
+          "title": "",
+          "workspacePath": ""
+        },
         "chatApp": {
           "feishu": {
             "appId": "",

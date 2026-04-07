@@ -1,10 +1,117 @@
 [
   {
-    "label": "chat-code-bridge",
-    "path": "/Users/junweishangguan/ai/chat-code-bridge"
+    "key": "chat-code-bridge",
+    "title": "飞书与代码侧能力桥接的 Node 项目",
+    "workspace": "/Users/junweishangguan/ai/chat-code-bridge"
   },
   {
-    "label": "telesalefront",
-    "path": "/Users/junweishangguan/weicai/telesalefront"
+    "key": "call-center-front-sdk",
+    "title": "话务sdk",
+    "workspace": "/Users/junweishangguan/weicai/call-center-front-sdk"
+  },
+  {
+    "key": "ceres_front",
+    "title": "贷后",
+    "workspace": "/Users/junweishangguan/weicai/ceres_front"
+  },
+  {
+    "key": "core-sparta-front",
+    "title": "资金配置舱二套",
+    "workspace": "/Users/junweishangguan/weicai/core-sparta-front"
+  },
+  {
+    "key": "crmfront",
+    "title": "客服-乾坤微服务",
+    "workspace": "/Users/junweishangguan/weicai/crmfront"
+  },
+  {
+    "key": "customer-chat-h5",
+    "title": "客服-在线聊天H5",
+    "workspace": "/Users/junweishangguan/weicai/customer-chat-h5"
+  },
+  {
+    "key": "flowdemo",
+    "title": "flowdemo",
+    "workspace": "/Users/junweishangguan/weicai/flowdemo"
+  },
+  {
+    "key": "fundroutefront",
+    "title": "资金路由3.0",
+    "workspace": "/Users/junweishangguan/weicai/fundroutefront"
+  },
+  {
+    "key": "heikaCMSWeb",
+    "title": "黑卡",
+    "workspace": "/Users/junweishangguan/weicai/heikaCMSWeb"
+  },
+  {
+    "key": "hermesweb",
+    "title": "融担",
+    "workspace": "/Users/junweishangguan/weicai/hermesweb"
+  },
+  {
+    "key": "hfq-app-vue3",
+    "title": "好分期App-vue3",
+    "workspace": "/Users/junweishangguan/weicai/hfq-app-vue3"
+  },
+  {
+    "key": "hfq-mapi",
+    "title": "好分期-mapi",
+    "workspace": "/Users/junweishangguan/weicai/hfq-mapi"
+  },
+  {
+    "key": "hfq-market-admin-server",
+    "title": "好分期-营销平台node服务",
+    "workspace": "/Users/junweishangguan/weicai/hfq-market-admin-server"
+  },
+  {
+    "key": "hfq-market-admin-web",
+    "title": "好分期-营销平台web",
+    "workspace": "/Users/junweishangguan/weicai/hfq-market-admin-web"
+  },
+  {
+    "key": "ibg_capital_front",
+    "title": "丘比特",
+    "workspace": "/Users/junweishangguan/weicai/ibg_capital_front"
+  },
+  {
+    "key": "ibg_capital_node",
+    "title": "丘比特-node服务",
+    "workspace": "/Users/junweishangguan/weicai/ibg_capital_node"
+  },
+  {
+    "key": "ibg_crm_front",
+    "title": "客服-主项目",
+    "workspace": "/Users/junweishangguan/weicai/ibg_crm_front"
+  },
+  {
+    "key": "ibg_node",
+    "title": "公服",
+    "workspace": "/Users/junweishangguan/weicai/ibg_node"
+  },
+  {
+    "key": "ibg_www",
+    "title": "财务",
+    "workspace": "/Users/junweishangguan/weicai/ibg_www"
+  },
+  {
+    "key": "metis-front",
+    "title": "贷后-标注平台",
+    "workspace": "/Users/junweishangguan/weicai/metis-front"
+  },
+  {
+    "key": "overseas-market-admin-front",
+    "title": "海外营销平台",
+    "workspace": "/Users/junweishangguan/weicai/overseas-market-admin-front"
+  },
+  {
+    "key": "riskfront",
+    "title": "风险平台",
+    "workspace": "/Users/junweishangguan/weicai/riskfront"
+  },
+  {
+    "key": "telesalefront",
+    "title": "电话营销平台",
+    "workspace": "/Users/junweishangguan/weicai/telesalefront"
   }
 ]

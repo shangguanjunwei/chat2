@@ -62,7 +62,7 @@ const runAgent = (workspace, args) => {
 
 export const sendMessageToCursorImpl = async (message) => {
   const config = readCofig();
-  const workspace = config.projectWorkspace || process.cwd();
+  const workspace = config.currentProject.workspacePath || process.cwd();
   const session = readSession();
   let chatId = session && session.workspace === workspace ? session.chatId : null;
   if (!chatId) {
@@ -70,7 +70,6 @@ export const sendMessageToCursorImpl = async (message) => {
     if (!chatId) throw new Error('create-chat 未返回 chat id');
     writeSession(workspace, chatId);
   }
-
   const out = await runAgent(workspace, [
     '--print',
     '--trust',

@@ -23,8 +23,8 @@ export const readProjectWorkspaceList = () => {
     throw new Error('project-workspace.json 需为非空数组');
   }
   for (const row of raw) {
-    if (!row || typeof row.label !== 'string' || typeof row.path !== 'string') {
-      throw new Error('每项 workspace 须包含字符串字段 label、path');
+    if (!row || typeof row.key !== 'string' || typeof row.title !== 'string' || typeof row.workspace !== 'string') {
+      throw new Error('每项 workspace 须包含字符串字段 key、title、workspace');
     }
   }
   return raw;
@@ -35,7 +35,7 @@ const selectWorkspaceByNumber = async (entries, input, output) => {
   try {
     output.write('当前非交互式 TTY，请用序号选择 workspace：\n');
     entries.forEach((w, i) => {
-      output.write(`  ${i + 1}. ${w.label} \n`);
+      output.write(`  ${i + 1}. ${w.title} \n`);
     });
     const raw = await rl.question('请输入序号: ');
     const idx = Number.parseInt(String(raw).trim(), 10) - 1;
@@ -51,7 +51,7 @@ const selectWorkspaceByNumber = async (entries, input, output) => {
 const selectWorkspaceInteractive = (entries, input, output) =>
   new Promise((resolve) => {
     let index = 0;
-    const saved = readCofig().projectWorkspace;
+    const saved = readCofig().currentProject.workspacePath;
     if (typeof saved === 'string' && saved) {
       const i = entries.findIndex((e) => e.path === saved);
       if (i >= 0) index = i;
@@ -60,9 +60,9 @@ const selectWorkspaceInteractive = (entries, input, output) =>
     /** 每项只占一行，避免路径过长自动换行导致「上移行数」与真实屏幕行数不一致 */
     const ttyCols =
       typeof output.columns === 'number' && output.columns > 0 ? output.columns : 80;
-    const menuRow = (label, path) => {
+    const menuRow = (title) => {
       const maxContent = Math.max(12, ttyCols - 3);
-      const s = `${label}  ${path}`;
+      const s = `${title}`;
       return s.length <= maxContent ? s : `${s.slice(0, maxContent - 1)}…`;
     };
 
@@ -73,7 +73,7 @@ const selectWorkspaceInteractive = (entries, input, output) =>
       const lines = [
         '请选择项目 workspace（↑↓ 移动，Enter 确定，Ctrl+C 退出）\n',
         ...entries.map((w, i) => {
-          const row = menuRow(w.label, w.path);
+          const row = `${menuRow(w.title)}`;
           return `${i === index ? '❯ ' : '  '}${row}\n`;
         }),
       ];
@@ -125,7 +125,7 @@ const selectWorkspaceInteractive = (entries, input, output) =>
   });
 
 /**
- * 交互选择 workspace，写入用户目录 `chat-code-bridge.json` 的 `projectWorkspace`（绝对路径）。
+ * 交互选择 workspace，写入用户目录 `chat-code-bridge.json` 的 `currentProject.workspacePath`（绝对路径）。
  * @param {{ stdin?: import('node:stream').Readable, stdout?: import('node:stream').Writable }} [io]
  * @returns {Promise<WorkspaceEntry>}
  */
@@ -138,6 +138,6 @@ export const selectProjectWorkspace = async (io = {}) => {
     ? await selectWorkspaceInteractive(entries, input, output)
     : await selectWorkspaceByNumber(entries, input, output);
 
-  writeConfig({ projectWorkspace: picked.path });
+  writeConfig({ currentProject: picked });
   return picked;
 };
