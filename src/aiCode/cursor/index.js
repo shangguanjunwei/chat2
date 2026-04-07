@@ -60,7 +60,7 @@ const runAgent = (workspace, args) => {
   });
 }
 
-const sendMessageToCursorImpl = async (message) => {
+export const sendMessageToCursorImpl = async (message) => {
   const config = readCofig();
   const workspace = config.projectWorkspace || process.cwd();
   const session = readSession();

@@ -1,5 +1,6 @@
 import AiBot from '@wecom/aibot-node-sdk';
 import { generateReqId } from '@wecom/aibot-node-sdk';
+import { sendMessageToCursorImpl } from '../../aiCode/cursor/index.js';
 
 export const startWecomMessageListener = async (bridge) => {
   // 1. 创建客户端实例
@@ -17,7 +18,7 @@ export const startWecomMessageListener = async (bridge) => {
   });
 
   // 4. 监听文本消息并进行流式回复
-  wsClient.on('message.text', (frame) => {
+  wsClient.on('message.text', async (frame) => {
     const content = frame.body.text?.content;
     console.log(`收到文本: ${content}`);
 
@@ -26,10 +27,8 @@ export const startWecomMessageListener = async (bridge) => {
     // 发送流式中间内容
     wsClient.replyStream(frame, streamId, '正在思考中...', false);
 
-    // 发送最终结果
-    setTimeout(() => {
-      wsClient.replyStream(frame, streamId, `你好！你说的是: "${content}"`, true);
-    }, 1000);
+    const result = await sendMessageToCursorImpl(content);
+    wsClient.replyStream(frame, streamId, result.text, true);
   });
 
   // 5. 监听进入会话事件（发送欢迎语）

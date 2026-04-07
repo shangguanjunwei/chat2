@@ -30,8 +30,6 @@ export const readProjectWorkspaceList = () => {
   return raw;
 };
 
-const menuLineCount = (n) => 1 + n;
-
 const selectWorkspaceByNumber = async (entries, input, output) => {
   const rl = readlinePromises.createInterface({ input, output });
   try {
@@ -59,19 +57,31 @@ const selectWorkspaceInteractive = (entries, input, output) =>
       if (i >= 0) index = i;
     }
 
+    /** 每项只占一行，避免路径过长自动换行导致「上移行数」与真实屏幕行数不一致 */
+    const ttyCols =
+      typeof output.columns === 'number' && output.columns > 0 ? output.columns : 80;
+    const menuRow = (label, path) => {
+      const maxContent = Math.max(12, ttyCols - 3);
+      const s = `${label}  ${path}`;
+      return s.length <= maxContent ? s : `${s.slice(0, maxContent - 1)}…`;
+    };
+
+    /** 与 draw() 写入的换行符数量一致：1 行说明 + 每条目 1 行 */
+    const menuScreenLineCount = () => 1 + entries.length;
+
     const draw = () => {
       const lines = [
         '请选择项目 workspace（↑↓ 移动，Enter 确定，Ctrl+C 退出）\n',
-        ...entries.map(
-          (w, i) =>
-            `${i === index ? '❯ ' : '  '}${w.label}\n`,
-        ),
+        ...entries.map((w, i) => {
+          const row = menuRow(w.label, w.path);
+          return `${i === index ? '❯ ' : '  '}${row}\n`;
+        }),
       ];
       output.write(lines.join(''));
     };
 
     const redraw = () => {
-      output.write(`\x1b[${menuLineCount(entries.length * 2)}A`);
+      output.write(`\x1b[${menuScreenLineCount()}A`);
       draw();
     };
 
