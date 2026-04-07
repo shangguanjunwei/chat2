@@ -1,18 +1,34 @@
 {
   "name": "chat-code-bridge",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
+  "description": "Bridge Feishu (Lark) and WeCom IM to the Cursor Agent CLI (agent) for chat-driven local workflows.",
   "keywords": [
-    "lark-cli",
-    "coder",
+    "feishu",
+    "lark",
+    "wecom",
+    "wechat-work",
+    "cursor",
+    "agent-cli",
+    "im",
     "bridge"
   ],
   "license": "MIT",
   "author": "524013038@qq.com",
   "type": "module",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shangguanjunwei/chat-code-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shangguanjunwei/chat-code-bridge/issues"
+  },
+  "homepage": "https://github.com/shangguanjunwei/chat-code-bridge#readme",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node main.js"
   },
   "dependencies": {
