@@ -51,7 +51,7 @@ const selectWorkspaceByNumber = async (entries, input, output) => {
 const selectWorkspaceInteractive = (entries, input, output) =>
   new Promise((resolve) => {
     let index = 0;
-    const saved = readCofig().currentProject.workspacePath;
+    const saved = readCofig().currentProject.workspace;
     if (typeof saved === 'string' && saved) {
       const i = entries.findIndex((e) => e.path === saved);
       if (i >= 0) index = i;
@@ -125,7 +125,7 @@ const selectWorkspaceInteractive = (entries, input, output) =>
   });
 
 /**
- * 交互选择 workspace，写入用户目录 `chat-code-bridge.json` 的 `currentProject.workspacePath`（绝对路径）。
+ * 交互选择 workspace，写入用户目录 `chat-code-bridge.json` 的 `currentProject.workspace`（绝对路径）。
  * @param {{ stdin?: import('node:stream').Readable, stdout?: import('node:stream').Writable }} [io]
  * @returns {Promise<WorkspaceEntry>}
  */
@@ -137,6 +137,8 @@ export const selectProjectWorkspace = async (io = {}) => {
   const picked = input.isTTY
     ? await selectWorkspaceInteractive(entries, input, output)
     : await selectWorkspaceByNumber(entries, input, output);
+
+  console.log('picked', picked)
 
   writeConfig({ currentProject: picked });
   return picked;

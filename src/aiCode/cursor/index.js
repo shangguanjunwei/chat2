@@ -62,7 +62,7 @@ const runAgent = (workspace, args) => {
 
 export const sendMessageToCursorImpl = async (message) => {
   const config = readCofig();
-  const workspace = config.currentProject.workspacePath || process.cwd();
+  const workspace = config.currentProject.workspace || process.cwd();
   const session = readSession();
   let chatId = session && session.workspace === workspace ? session.chatId : null;
   if (!chatId) {
