@@ -58,11 +58,14 @@ export const startFeishuMessageListener = async (bridge) => {
         writeLog("监听到消息", JSON.stringify(data));
         const options = getFormattedData(data);
         if (!options?.content?.text) return;
-        await sendMessageReaction(client, {
-          messageId: options.message_id,
-          emojiType: 'Typing',
+        const reaction = await sendMessageReaction(client, {
+          ...options,
+          emoji_type: 'Typing',
         });
-        sendMessageToCursor(client, options);
+        sendMessageToCursor(client, {
+          ...options,
+          reaction_id: reaction.data.reaction_id,
+        });
       },
       'im.message.reaction.created_v1': async (data) => {
         // writeLog("收到消息表情回复", JSON.stringify(data));

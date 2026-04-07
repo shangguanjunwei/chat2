@@ -2,9 +2,9 @@ import * as Lark from '@larksuiteoapi/node-sdk';
 
 /** im.v1.message.create，msg_type: interactive；`content` 与 `defaultCard` 二选一 */
 export const sendInteractiveCardMessage = async (client, options) => {
-  const { receiveId, receiveIdType = 'chat_id', content, defaultCard: dc } = options;
-  if (!receiveId) {
-    throw new Error('sendInteractiveCardMessage: receiveId 为必填');
+  const { receive_id, receive_id_type = 'chat_id', content, defaultCard: dc } = options;
+  if (!receive_id) {
+    throw new Error('sendInteractiveCardMessage: receive_id 为必填');
   }
   let cardContent;
   if (content != null) {
@@ -17,9 +17,9 @@ export const sendInteractiveCardMessage = async (client, options) => {
     );
   }
   return client.im.v1.message.create({
-    params: { receive_id_type: receiveIdType },
+    params: { receive_id_type: receive_id_type },
     data: {
-      receive_id: receiveId,
+      receive_id: receive_id,
       msg_type: 'interactive',
       content: cardContent,
     },

@@ -3,7 +3,9 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { sendTextMessage } from '../../chatApp/feishu/send-message/sendTextMessage.js';
+import { deleteMessageReaction } from '../../chatApp/feishu/send-message/sendMessageReaction.js';
 import { writeLog } from '../../../utils/writeLog.js';
+import { sendMarkdownMessage } from '../../chatApp/feishu/send-message/sendMarkdownMessage.js';
 
 const sessionDir = join(homedir(), '.chat-code-bridge');
 const sessionPath = join(sessionDir, 'chat-code-bridge-session.json');
@@ -88,11 +90,18 @@ export const sendMessageToCursor = async (client, options) => {
   if (!message) throw new Error('发送 Cursor 的消息不能为空');
   const result = await sendMessageToCursorImpl(message);
   const params = {
-    messageId: options.message_id,
-    receiveId: options.chat_id,
-    receiveIdType: 'chat_id',
+    message_id: options.message_id,
+    receive_id: options.chat_id,
+    receive_id_type: 'chat_id',
     text: result.text || '',
   }
   writeLog("本地发送消息", JSON.stringify(params));
-  await sendTextMessage(client, params);
+  // await sendTextMessage(client, params);
+  await sendMarkdownMessage(client, params);
+  if (options.reaction_id) {
+    await deleteMessageReaction(client, {
+      message_id: options.message_id,
+      reaction_id: options.reaction_id,
+    });
+  }
 }
