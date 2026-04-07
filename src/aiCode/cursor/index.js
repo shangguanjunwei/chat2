@@ -6,6 +6,7 @@ import { sendTextMessage } from '../../chatApp/feishu/send-message/sendTextMessa
 import { deleteMessageReaction } from '../../chatApp/feishu/send-message/sendMessageReaction.js';
 import { writeLog } from '../../../utils/writeLog.js';
 import { sendMarkdownMessage } from '../../chatApp/feishu/send-message/sendMarkdownMessage.js';
+import { readCofig } from '../../../utils/readCofig.js';
 
 const sessionDir = join(homedir(), '.chat-code-bridge');
 const sessionPath = join(sessionDir, 'chat-code-bridge-session.json');
@@ -60,10 +61,10 @@ const runAgent = (workspace, args) => {
 }
 
 const sendMessageToCursorImpl = async (message) => {
-  const workspace = process.cwd();
+  const config = readCofig();
+  const workspace = config.projectWorkspace || process.cwd();
   const session = readSession();
   let chatId = session && session.workspace === workspace ? session.chatId : null;
-
   if (!chatId) {
     chatId = (await runAgent(workspace, ['create-chat'])).trim();
     if (!chatId) throw new Error('create-chat 未返回 chat id');

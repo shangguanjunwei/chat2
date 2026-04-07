@@ -6,6 +6,7 @@ import { applyTreeNode } from './utils/applyTreeNode.js';
 import { selectAppBridge } from './src/chatApp/index.js';
 import { startFeishuMessageListener } from './src/chatApp/feishu/index.js';
 import { startWecomMessageListener } from './src/chatApp/wecom/index.js';
+import { selectProjectWorkspace } from './src/aiCode/cursor/check-workspace.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CONFIG_PATH = join(__dirname, 'config', 'chat-code-bridge.json');
@@ -16,6 +17,8 @@ const main = async () => {
   applyTreeNode(homedir(), root);
   const bridge = await selectAppBridge();
   console.log(JSON.stringify(bridge, null, 2));
+  const workspace = await selectProjectWorkspace();
+  console.log('333333', workspace)
   if (bridge.key === 'feishu') {
     startFeishuMessageListener(bridge);
   } else if (bridge.key === 'wecom') {
