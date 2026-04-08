@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.60.0",
-    "@wecom/aibot-node-sdk": "^1.0.6"
+    "@wecom/aibot-node-sdk": "^1.0.6",
+    "dayjs": "^1.11.20"
   }
 }
