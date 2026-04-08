@@ -29,7 +29,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "tsx main.ts"
+    "dev": "tsx watch main.ts"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.60.0",

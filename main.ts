@@ -8,7 +8,6 @@ import { selectAction } from '@/utils/selectAction';
 import { inputAction } from '@/utils/inputAction';
 import { merge, isEmpty } from 'lodash-es';
 import chatCodeBridgeConfigTemplate from '@config/json/chat-code-bridge.template.json';
-// import projectConfigListTemplate from '@config/json/project-config-list.template.json';
 import chatAppOptions from '@config/json/support-chat-app.json';
 import aiCodeBridgeOptions from '@config/json/support-ai-code-app.json';
 import { v4 as uuidv4 } from 'uuid';
