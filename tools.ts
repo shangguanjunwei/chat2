@@ -140,7 +140,7 @@ export function streamAgentProgress(prompt: string): Promise<number> {
   });
 }
 
-streamAentProgress('33333').catch((err) => {
+streamAgentProgress('33333').catch((err: unknown) => {
   console.error(err);
   process.exit(1);
 });

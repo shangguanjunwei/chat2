@@ -65,19 +65,50 @@ export class FeishuChatApp extends ChatApp {
       }
     });
   }
-  sendStreamMessage() {
-    this.client!.cardkit.v1.card.create(
-      {
-        data: {
-          type: 'card_json',
-          data: getStreamingCardJson(),
-        },
+  async sendStreamMessage() {
+    // if (!this.currentChatId) return;
+    const res = await this.client!.im.message.create({
+      params: {
+        receive_id_type: 'chat_id',
       },
-    ).then((res) => {
-      console.log(11111, res);
-    }).catch((err) => {
-      console.log(22222, err);
+      data: {
+        receive_id: this.currentChatId,
+        msg_type: 'interactive',
+        content: JSON.stringify({
+          header: {
+            title: { tag: 'plain_text', content: '加载中...' }
+          },
+          elements: [
+            {
+              tag: 'markdown',
+              content: '正在生成内容...'
+            }
+          ]
+        })
+      }
     });
+
+    setTimeout(async () => {
+      await this.client!.im.message.patch({
+        path: {
+          message_id: res.data?.message_id || '',
+        },
+        data: {
+          content: JSON.stringify({
+            header: {
+              title: { tag: 'plain_text', content: '生成中...' }
+            },
+            elements: [
+              {
+                tag: 'markdown',
+                content: '已生成：Hello'
+              }
+            ]
+          })
+        }
+      });
+    }, 1000);
+
   }
   sendMessage(message: string) {
     this.client!.im.v1.message.reply({

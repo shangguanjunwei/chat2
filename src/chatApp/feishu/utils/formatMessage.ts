@@ -25,7 +25,7 @@ export const getFormattedData = (data: any) => {
 };
 
 // 流式卡片消息
-export const getStreamingCardJson = () => {
+export const getStreamingCardJson = (content: string = '**思考中...**') => {
   return JSON.stringify({
     "schema": "2.0", // 卡片 JSON 结构的版本。默认为 1.0。要使用 JSON 2.0 结构，必须显示声明 2.0。
     "config": {
@@ -85,7 +85,7 @@ export const getStreamingCardJson = () => {
           "tag": "markdown", // 组件的标签。
           "margin": "4px", // 组件的外边距，默认值 "0"，支持范围 [-99,99]px。JSON 2.0 新增属性。
           "element_id": "custom_id", // 操作组件的唯一标识。JSON 2.0 新增属性。用于在调用流式更新相关接口中指定组件。在同一张卡片内，该字段的值全局唯一。仅允许使用字母、数字和下划线，必须以字母开头，不得超过 20 字符。
-          "content": "**11111**"
+          "content": content
         }
       ]
     }
