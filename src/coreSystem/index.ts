@@ -31,7 +31,27 @@ const reset = async () => {
 }
 
 const itemStart = async (option: any) => {
-  console.log('option', option);
+  const {
+    appBridge,
+    aiCodeBridge,
+    currentProject,
+    appBotOption
+  } = option;
+  switch (aiCodeBridge) {
+    case 'cursor':
+      new CursorAiCode(currentProject);
+      break;
+    default:
+      break;
+  }
+
+  switch (appBridge) {
+    case 'feishu':
+      new FeishuChatApp(appBotOption);
+      break;
+    default:
+      break;
+  }
 }
 
 export const startCoreSystem = async () => {
