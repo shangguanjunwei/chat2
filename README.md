@@ -16,7 +16,9 @@
 
 - **Node.js**：建议当前 LTS；本项目为 ES Module（`package.json` 中 `"type": "module"`）。
 - **Cursor Agent CLI**：PATH 中需有名为 `agent` 的可执行文件（与代码中 `spawn('agent', …)` 一致）。
-- **飞书应用**（若选飞书）：自建应用、机器人能力、事件 `im.message.receive_v1` 等，按开放平台配置 `appId` / `appSecret` / `domain`。
+- **飞书应用**（若选飞书）：自建应用、机器人能力，按开放平台配置 `appId` / `appSecret` / `domain`。另外，事件订阅需监听以下两个事件：
+  - `im.chat.access_event.bot_p2p_chat_entered_v1`
+  - `im.message.receive_v1`
 - **企业微信机器人**（若选企微）：后台获取 `botId`、`secret`，与 `@wecom/aibot-node-sdk` 要求一致。
 
 ---
@@ -179,6 +181,7 @@ sequenceDiagram
 
 | 日期 | 说明 |
 | --- | --- |
+| 2026-04-09 | README 补充飞书事件订阅要求：若选择飞书平台，需监听 `im.chat.access_event.bot_p2p_chat_entered_v1` 与 `im.message.receive_v1`。 |
 | 2026-04-07 | 文首「能力」表去掉「说明」列，仅保留能力名称列。 |
 | 2026-04-07 | README 删除「用户目录配置」整节，并弱化正文中的家目录路径表述。 |
 | 2026-04-07 | 重写 README：对齐 `main.js`（飞书 / 企微、`selectProjectWorkspace`、`sendMarkdownMessage`、企微 SDK）、补充 workspace 选择与 `writeLog`；说明 Lark 菜单项与入口分支关系。 |
