@@ -17,7 +17,7 @@ export const eventBusListener = (
     const prefixResult = await chatAppInstance.sendPrefixMessage({
       option: msgContent,
       result: {
-        text: '正在生成内容...',
+        text: '🤔 思考中...',
         status: 'thinking',
       },
     });

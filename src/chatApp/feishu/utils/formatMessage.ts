@@ -25,11 +25,11 @@ export const getFormattedData = (data: any) => {
 };
 
 // 流式卡片消息
-export const getStreamingCardJson = (content: string = '**思考中...**') => {
+export const getStreamingCardJson = (data: StreamPrintFnParams) => {
   return JSON.stringify({
     "schema": "2.0", // 卡片 JSON 结构的版本。默认为 1.0。要使用 JSON 2.0 结构，必须显示声明 2.0。
     "config": {
-      "streaming_mode": true, // 卡片是否处于流式更新模式，默认值为 false。
+      "streaming_mode": data.status !== 'completed', // 卡片是否处于流式更新模式，默认值为 false。
       "streaming_config": {}, // 流式更新配置。详情参考下文。
       "enable_forward": true, // 是否支持转发卡片。默认值为 true。
       "update_multi": true, // 是否为共享卡片。默认值为 true，JSON 2.0 暂时仅支持设为 true，即更新卡片的内容对所有收到这张卡片的人员可见。
@@ -55,37 +55,26 @@ export const getStreamingCardJson = (content: string = '**思考中...**') => {
       "title": {
         // 卡片主标题。必填。要为标题配置多语言，参考配置卡片多语言文档。
         "tag": "plain_text", // 文本类型的标签。可选值：plain_text 和 lark_md。
-        "content": "示例标题" // 标题内容。
-      },
-      "subtitle": {
-        // 卡片副标题。可选。
-        "tag": "plain_text", // 文本类型的标签。可选值：plain_text 和 lark_md。
-        "content": "示例文本" // 标题内容。
+        "content": data.status === 'completed' ? '完成' : data.status === 'thinking' ? '思考中...' : '生成中...', // 标题内容。
       },
       "text_tag_list": [],
-      "template": "blue", // 标题主题样式颜色。支持 "blue"|"wathet"|"turquoise"|"green"|"yellow"|"orange"|"red"|"carmine"|"violet"|"purple"|"indigo"|"grey"|"default"。默认值 default。
-      // "icon": { // 前缀图标。
-      //   "tag": "standard_icon", // 图标类型。
-      //   "token": "chat-forbidden_outlined", // 图标的 token。仅在 tag 为 standard_icon 时生效。
-      //   "color": "orange", // 图标颜色。仅在 tag 为 standard_icon 时生效。
-      //   "img_key": "img_v2_38811724" // 图片的 key。仅在 tag 为 custom_icon 时生效。
-      // },
+      "template": "indigo", // 标题主题样式颜色。支持 "blue"|"wathet"|"turquoise"|"green"|"yellow"|"orange"|"red"|"carmine"|"violet"|"purple"|"indigo"|"grey"|"default"。默认值 default。
       "padding": "12px 8px 12px 8px" // 标题组件的内边距。JSON 2.0 新增属性。默认值 "12px"，支持范围 [0,99]px。    
     },
     "body": { // 卡片正文。
       // JSON 2.0 新增布局类属性，用于控制子元素排列：
       "direction": "vertical", // 正文或容器内组件的排列方向。可选值："vertical"（垂直排列）、"horizontal"（水平排列）。默认为 "vertical"。
-      "padding": "12px 8px 12px 8px", // 正文或容器内组件的内边距，支持范围 [0,99]px。    
-      "horizontal_spacing": "3px", // 正文或容器内组件的水平间距，可选值："small"(4px)、"medium"(8px)、"large"(12px)、"extra_large"(16px)或[0,99]px。
+      "padding": "6px 12px 12px 12px", // 正文或容器内组件的内边距，支持范围 [0,99]px。    
+      "horizontal_spacing": "small", // 正文或容器内组件的水平间距，可选值："small"(4px)、"medium"(8px)、"large"(12px)、"extra_large"(16px)或[0,99]px。
       "horizontal_align": "left", // 正文或容器内组件的水平对齐方式，可选值："left"、"center"、"right"。默认值为 "left"。
-      "vertical_spacing": "4px", // 正文或容器内组件的垂直间距，可选值："small"(4px)、"medium"(8px)、"large"(12px)、"extra_large"(16px)或[0,99]px。
+      "vertical_spacing": "medium", // 正文或容器内组件的垂直间距，可选值："small"(4px)、"medium"(8px)、"large"(12px)、"extra_large"(16px)或[0,99]px。
       "vertical_align": "center", // 正文或容器内组件的垂直对齐方式，可选值："top"、"center"、"bottom"，默认值为 "top"。
       "elements": [ // 在此传入各个组件的 JSON 数据，组件将按数组顺序纵向流式排列。
         {
           "tag": "markdown", // 组件的标签。
-          "margin": "4px", // 组件的外边距，默认值 "0"，支持范围 [-99,99]px。JSON 2.0 新增属性。
+          "margin": "8px", // 组件的外边距，默认值 "0"，支持范围 [-99,99]px。JSON 2.0 新增属性。
           "element_id": "custom_id", // 操作组件的唯一标识。JSON 2.0 新增属性。用于在调用流式更新相关接口中指定组件。在同一张卡片内，该字段的值全局唯一。仅允许使用字母、数字和下划线，必须以字母开头，不得超过 20 字符。
-          "content": content
+          "content": data.text
         }
       ]
     }

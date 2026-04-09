@@ -98,8 +98,9 @@ export class CursorAiCode extends AiCode {
             }
             break;
           case 'assistant': {
+            console.log('line', JSON.stringify(line.message), '\n');
             const piece = line.message?.content?.[0]?.text ?? '';
-            accumulatedText = piece;
+            accumulatedText += piece;
             await printFn({
               text: piece,
               status: 'processing',

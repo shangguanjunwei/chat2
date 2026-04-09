@@ -71,17 +71,7 @@ export class FeishuChatApp extends ChatApp {
   async sendStreamMessage(data: AiCode2ChatAppResponseContent) {
     await this.client!.im.message.patch({
       path: { message_id: data.option.stream_card_message_id },
-      data: {
-        content: JSON.stringify({
-          header: {
-            title: {
-              tag: 'plain_text',
-              content: headerTitleEnum[data.result.status]
-            }
-          },
-          elements: [{ tag: 'markdown', content: data.result.text }]
-        })
-      }
+      data: { content: getStreamingCardJson(data.result) }
     });
   }
   sendMessage(data: AiCode2ChatAppResponseContent) {
@@ -113,10 +103,7 @@ export class FeishuChatApp extends ChatApp {
       data: {
         receive_id: data.option.chat_id,
         msg_type: 'interactive',
-        content: JSON.stringify({
-          header: { title: { tag: 'plain_text', content: '加载中...' } },
-          elements: [{ tag: 'markdown', content: data.result.text || '正在生成内容...' }]
-        })
+        content: getStreamingCardJson(data.result)
       }
     });
     return {
