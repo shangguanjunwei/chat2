@@ -42,9 +42,6 @@ export class FeishuChatApp extends ChatApp {
         'im.chat.access_event.bot_p2p_chat_entered_v1': async (data) => {
           this.sendWelcomeMessage(data);
         },
-        'im.message.reaction.created_v1': async () => { },
-        'im.message.message_read_v1': async () => { },
-        'im.message.reaction.deleted_v1': async () => { },
       }),
     });
     this.setStatus('on');

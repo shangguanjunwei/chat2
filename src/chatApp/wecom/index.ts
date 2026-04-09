@@ -1,12 +1,17 @@
-import AiBot from '@wecom/aibot-node-sdk';
-import { generateReqId } from '@wecom/aibot-node-sdk';
-import { sendMessageToCursorImpl } from '../../aiCode/cursor/index.js';
+import AiBot, { generateReqId } from '@wecom/aibot-node-sdk';
 
-export const startWecomMessageListener = async (bridge) => {
+
+class WecomChatApp extends ChatApp {
+  constructor(appId: string, appSecret: string) {
+    super(appId);
+  }
+}
+
+export const startWecomMessageListener = async () => {
   // 1. 创建客户端实例
   const wsClient = new AiBot.WSClient({
-    botId: bridge.botId,       // 企业微信后台获取的机器人 ID
-    secret: bridge.secret,  // 企业微信后台获取的机器人 Secret
+    botId: 'aibncSrMYP1eDElhpZsh-Dh6zF_9YM9Hw0q',       // 企业微信后台获取的机器人 ID
+    secret: 'Zu6Mp5t2u8WwNOcoBl1RXo5DsXTI89ivVW19xolPJ2G',  // 企业微信后台获取的机器人 Secret
   });
 
   // 2. 建立连接（支持链式调用）
@@ -18,8 +23,8 @@ export const startWecomMessageListener = async (bridge) => {
   });
 
   // 4. 监听文本消息并进行流式回复
-  wsClient.on('message.text', async (frame) => {
-    const content = frame.body.text?.content;
+  wsClient.on('message.text', async (frame: any) => {
+    const content = frame?.body?.text?.content;
     console.log(`收到文本: ${content}`);
 
     const streamId = generateReqId('stream');
@@ -27,8 +32,8 @@ export const startWecomMessageListener = async (bridge) => {
     // 发送流式中间内容
     wsClient.replyStream(frame, streamId, '正在思考中...', false);
 
-    const result = await sendMessageToCursorImpl(content);
-    wsClient.replyStream(frame, streamId, result.text, true);
+    // const result = await sendMessageToCursorImpl(content);
+    wsClient.replyStream(frame, streamId, 'dsadsadsad', true);
   });
 
   // 5. 监听进入会话事件（发送欢迎语）
