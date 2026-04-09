@@ -84,6 +84,7 @@ export class CursorAiCode extends AiCode {
         return;
       }
       const rl = createInterface({ input: stdout, crlfDelay: Infinity });
+      let lastMessageText = '';
       rl.on('line', async (raw) => {
         const line = parseLine(raw);
         if (!line) return;
@@ -99,19 +100,25 @@ export class CursorAiCode extends AiCode {
             break;
           case 'assistant': {
             const piece = line.message?.content?.[0]?.text ?? '';
-            accumulatedText += piece;
-            await printFn({
-              text: accumulatedText,
-              status: 'processing',
-            });
+            if (piece !== lastMessageText) {
+              lastMessageText = piece;
+              accumulatedText += piece;
+              await printFn({
+                text: accumulatedText,
+                status: 'processing',
+              });
+            }
             break;
           }
           case 'result': {
             const endTimeSec = dayjs();
             const totalDuration = endTimeSec.diff(startTimeSec, 'millisecond');
-            accumulatedText += `\n\n🎯 完成,耗时 ${totalDuration} ms`;
             await printFn({
-              text: accumulatedText,
+              text: [
+                (line as any).result ?? '',
+                '\n --- ',
+                `🎯 耗时 ${totalDuration} ms`
+              ].join('\n'),
               status: 'completed',
             });
             break;
