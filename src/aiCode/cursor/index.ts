@@ -74,6 +74,7 @@ export class CursorAiCode extends AiCode {
           '--output-format',
           'stream-json',
           '--stream-partial-output',
+          'stream-json',
           prompt
         ],
         { stdio: ['inherit', 'pipe', 'inherit'] }
@@ -98,7 +99,6 @@ export class CursorAiCode extends AiCode {
             }
             break;
           case 'assistant': {
-            console.log('line', JSON.stringify(line.message), '\n');
             const piece = line.message?.content?.[0]?.text ?? '';
             accumulatedText += piece;
             await printFn({
