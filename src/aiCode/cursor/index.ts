@@ -71,9 +71,8 @@ export class CursorAiCode extends AiCode {
           this.option.currentProject.workspace,
           '--resume',
           this.option.currentChatSession,
-          '--output-format',
-          'stream-json',
           '--stream-partial-output',
+          '--output-format',
           'stream-json',
           prompt
         ],
@@ -102,7 +101,7 @@ export class CursorAiCode extends AiCode {
             const piece = line.message?.content?.[0]?.text ?? '';
             accumulatedText += piece;
             await printFn({
-              text: piece,
+              text: accumulatedText,
               status: 'processing',
             });
             break;
