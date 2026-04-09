@@ -5,27 +5,34 @@ import {
   getFormattedData,
   getStreamingCardJson
 } from '@/chatApp/feishu/utils/formatMessage';
+import eventBus from '@/eventBus';
 
+const headerTitleEnum = {
+  thinking: '思考中...',
+  processing: '生成中...',
+  completed: '完成',
+}
 export class FeishuChatApp extends ChatApp {
   client: Lark.Client | null = null;
   wsClient: Lark.WSClient | null = null;
   currentMessageId: string = '';
   currentChatId: string = '';
   currentReactionId: string = '';
-  appBotInfo: LarkClient;
+  option: ChatCodeBridgeOption;
 
-  constructor(botInfo: LarkClient) {
+  constructor(option: ChatCodeBridgeOption) {
     super();
-    this.appBotInfo = botInfo;
-    this.init(botInfo);
+    this.option = option;
+    this.init(option);
   }
-  init(data: LarkClient): void {
+  init(data: ChatCodeBridgeOption): void {
+    const { appBotOption } = data;
     this.client = new Lark.Client({
-      ...data,
+      ...appBotOption as any,
       appType: Lark.AppType.SelfBuild,
     });
     this.wsClient = new Lark.WSClient({
-      ...data,
+      ...appBotOption as any,
       // loggerLevel: Lark.LoggerLevel.debug,
     });
     this.wsClient.start({
@@ -34,12 +41,11 @@ export class FeishuChatApp extends ChatApp {
           if (!this.messageIsToThisBot(data)) return;
           const options = getFormattedData(data);
           if (!options?.content?.text) return;
-          this.currentChatId = data.message.chat_id;
-          this.currentMessageId = data.message.message_id;
-          this.sendPrefixMessage(data);
-          // 将收到的消息发送给 AI code 工具
-          // this.sendMessage('**99999**')
-          this.sendStreamMessage();
+          eventBus.emit(`${this.option.uuid}:messageBridge`, {
+            text: options.content.text,
+            chat_id: data.message.chat_id,
+            message_id: data.message.message_id,
+          });
         },
         'im.chat.access_event.bot_p2p_chat_entered_v1': async (data) => {
           this.sendWelcomeMessage(data);
@@ -62,58 +68,29 @@ export class FeishuChatApp extends ChatApp {
       }
     });
   }
-  async sendStreamMessage() {
-    // if (!this.currentChatId) return;
-    const res = await this.client!.im.message.create({
-      params: {
-        receive_id_type: 'chat_id',
-      },
+  async sendStreamMessage(data: AiCode2ChatAppResponseContent) {
+    await this.client!.im.message.patch({
+      path: { message_id: data.option.stream_card_message_id },
       data: {
-        receive_id: this.currentChatId,
-        msg_type: 'interactive',
         content: JSON.stringify({
           header: {
-            title: { tag: 'plain_text', content: '加载中...' }
-          },
-          elements: [
-            {
-              tag: 'markdown',
-              content: '正在生成内容...'
+            title: {
+              tag: 'plain_text',
+              content: headerTitleEnum[data.result.status]
             }
-          ]
+          },
+          elements: [{ tag: 'markdown', content: data.result.text }]
         })
       }
     });
-
-    setTimeout(async () => {
-      await this.client!.im.message.patch({
-        path: {
-          message_id: res.data?.message_id || '',
-        },
-        data: {
-          content: JSON.stringify({
-            header: {
-              title: { tag: 'plain_text', content: '生成中...' }
-            },
-            elements: [
-              {
-                tag: 'markdown',
-                content: '已生成：Hello'
-              }
-            ]
-          })
-        }
-      });
-    }, 1000);
-
   }
-  sendMessage(message: string) {
+  sendMessage(data: AiCode2ChatAppResponseContent) {
     this.client!.im.v1.message.reply({
-      path: { message_id: this.currentMessageId },
+      path: { message_id: data.option.message_id },
       data: {
         msg_type: 'post',
         content: JSON.stringify({
-          zh_cn: { content: [[{ tag: 'md', text: message }]] },
+          zh_cn: { content: [[{ tag: 'md', text: data.result.text }]] },
         }),
       },
     });
@@ -122,25 +99,37 @@ export class FeishuChatApp extends ChatApp {
     const { chat_type, mentions = [] } = data.message;
     if (chat_type === 'p2p') return true;
     if (chat_type === 'group') {
-      return mentions.some((m: any) => m.bot_info.app_id === this.appBotInfo.appId);
+      return mentions.some((m: any) => m.bot_info.app_id === this.option.appBotOption.app_id);
     }
     return false;
   }
-  async sendPrefixMessage(data: any) {
-    const { message: { message_id } } = data;
-    const reaction = await this.client!.im.v1.messageReaction.create({
-      path: { message_id: message_id },
-      data: {
-        reaction_type: { emoji_type: 'Typing' },
-      },
+  async sendPrefixMessage(data: AiCode2ChatAppResponseContent) {
+    const result_1 = await this.client!.im.v1.messageReaction.create({
+      path: { message_id: data.option.message_id },
+      data: { reaction_type: { emoji_type: 'Typing' } },
     })
-    this.currentReactionId = reaction?.data?.reaction_id || '';
+    const result_2 = await this.client!.im.message.create({
+      params: { receive_id_type: 'chat_id' },
+      data: {
+        receive_id: data.option.chat_id,
+        msg_type: 'interactive',
+        content: JSON.stringify({
+          header: { title: { tag: 'plain_text', content: '加载中...' } },
+          elements: [{ tag: 'markdown', content: data.result.text || '正在生成内容...' }]
+        })
+      }
+    });
+    return {
+      ...data.option,
+      reaction_id: result_1.data?.reaction_id,
+      stream_card_message_id: result_2.data?.message_id,
+    }
   }
-  sendSuffixMessage() {
+  sendSuffixMessage(data: AiCode2ChatAppResponseContent) {
     this.client!.im.v1.messageReaction.delete({
       path: {
-        message_id: this.currentMessageId,
-        reaction_id: this.currentReactionId,
+        message_id: data.option.message_id,
+        reaction_id: data.option.reaction_id,
       }
     });
   }

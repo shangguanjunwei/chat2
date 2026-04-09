@@ -5,15 +5,26 @@ import { createInterface } from 'node:readline';
 import { parseLine } from './utils/index';
 
 export class CursorAiCode extends AiCode {
-  project: ProjectItem = {
-    key: '',
-    title: '',
-    workspace: '',
+  option: ChatCodeBridgeOption = {
+    uuid: '',
+    appBridge: '',
+    aiCodeBridge: '',
+    currentProject: {
+      key: '',
+      title: '',
+      workspace: '',
+    },
+    appBotOption: {
+      key: '',
+      label: '',
+      needConfigKeys: [],
+    },
+    currentChatSession: '',
   }
-  chatId: string = '';
-  constructor(project: ProjectItem) {
+
+  constructor(option: ChatCodeBridgeOption) {
     super();
-    this.project = project;
+    this.option = option;
   }
   createChat(): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -21,7 +32,7 @@ export class CursorAiCode extends AiCode {
         'agent',
         ['create-chat'],
         {
-          cwd: this.project.workspace,
+          cwd: this.option.currentProject.workspace,
           env: process.env,
           stdio: ['ignore', 'pipe', 'pipe'],
         }
@@ -35,16 +46,19 @@ export class CursorAiCode extends AiCode {
       child.on('error', reject);
       child.on('close', (code) => {
         if (code === 0) {
-          this.chatId = stdout.trim();
-          resolve(this.chatId);
+          this.option.currentChatSession = stdout.trim();
+          resolve(this.option.currentChatSession);
         } else {
           reject(new Error(stderr.trim() || stdout.trim() || `agent 退出码 ${code}`));
         }
       });
     });
   }
-  chatByStream(prompt: string, printFn: (text: string) => void): Promise<any> {
-    return new Promise((resolve, reject) => {
+  chatByStream(
+    prompt: string,
+    printFn: (obj: StreamPrintFnParams) => Promise<void>
+  ): Promise<any> {
+    return new Promise(async (resolve, reject) => {
       let accumulatedText = '';
       const startTimeSec = dayjs();
       const child = spawn(
@@ -54,9 +68,9 @@ export class CursorAiCode extends AiCode {
           '--force',
           '--trust',
           '--workspace',
-          this.project.workspace,
+          this.option.currentProject.workspace,
           '--resume',
-          this.chatId,
+          this.option.currentChatSession,
           '--output-format',
           'stream-json',
           '--stream-partial-output',
@@ -70,20 +84,26 @@ export class CursorAiCode extends AiCode {
         return;
       }
       const rl = createInterface({ input: stdout, crlfDelay: Infinity });
-      rl.on('line', (raw) => {
+      rl.on('line', async (raw) => {
         const line = parseLine(raw);
         if (!line) return;
         const { type, subtype } = line;
         switch (type) {
           case 'system':
             if (subtype === 'init') {
-              printFn(`🤔 思考中...`);
+              await printFn({
+                text: '🤔 思考中...',
+                status: 'thinking',
+              });
             }
             break;
           case 'assistant': {
             const piece = line.message?.content?.[0]?.text ?? '';
-            accumulatedText += piece;
-            printFn(accumulatedText);
+            accumulatedText = piece;
+            await printFn({
+              text: piece,
+              status: 'processing',
+            });
             break;
           }
           case 'result': {
@@ -91,7 +111,10 @@ export class CursorAiCode extends AiCode {
             const totalDuration = endTimeSec.diff(startTimeSec, 'millisecond');
             const totalTime = endTimeSec.diff(startTimeSec, 'second');
             accumulatedText += `\n\n🎯 完成,耗时 ${totalDuration}ms (总计${totalTime}s)`;
-            printFn(accumulatedText);
+            await printFn({
+              text: accumulatedText,
+              status: 'completed',
+            });
             break;
           }
           default:
@@ -122,15 +145,15 @@ export class CursorAiCode extends AiCode {
           '--force',
           '--trust',
           '--workspace',
-          this.project.workspace,
+          this.option.currentProject.workspace,
           '--resume',
-          this.chatId,
+          this.option.currentChatSession,
           '--output-format',
           'text',
           prompt
         ],
         {
-          cwd: this.project.workspace,
+          cwd: this.option.currentProject.workspace,
           env: process.env,
           stdio: ['ignore', 'pipe', 'pipe'],
         }
@@ -144,8 +167,8 @@ export class CursorAiCode extends AiCode {
       child.on('error', reject);
       child.on('close', (code) => {
         if (code === 0) {
-          this.chatId = stdout.trim();
-          resolve(this.chatId);
+          // this.option.currentChatSession = stdout.trim();
+          resolve(null);
         } else {
           reject(new Error(stderr.trim() || stdout.trim() || `agent 退出码 ${code}`));
         }

@@ -22,9 +22,10 @@ type ProjectItem = {
 interface ChatAppInterface {
   init(): void;
   messageIsToThisBot(...args: any[]): boolean | Promise<boolean>;
-  sendPrefixMessage(...args: any[]): void | Promise<void>;
+  sendPrefixMessage(...args: any[]): void | Promise<ChatApp2AiCodeMessageContent>;
   sendSuffixMessage(...args: any[]): void | Promise<void>;
   sendMessage(...args: any[]): void | Promise<void>;
+  sendStreamMessage(...args: any[]): void | Promise<void>;
 }
 
 interface LarkClient {
@@ -59,4 +60,31 @@ interface StreamJsonLine {
       result?: { success?: { totalLines?: number } };
     };
   };
+}
+
+interface ChatCodeBridgeOption {
+  uuid: string;
+  appBridge: string;
+  aiCodeBridge: string;
+  currentProject: ProjectItem;
+  appBotOption: Item;
+  currentChatSession: string;
+  currentChatSessionCreatedAt?: number;
+}
+
+interface StreamPrintFnParams {
+  text: string;
+  status: 'thinking' | 'processing' | 'completed';
+}
+
+interface ChatApp2AiCodeMessageContent {
+  text: string;
+  chat_id: string;
+  message_id: string;
+  [key: string]: any;
+}
+
+interface AiCode2ChatAppResponseContent {
+  option: ChatApp2AiCodeMessageContent;
+  result: StreamPrintFnParams;
 }

@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { writeFileContentAsJson } from "@/utils/fileEvents";
 import { FeishuChatApp } from '@/chatApp/feishu';
 import { CursorAiCode } from '@/aiCode/cursor';
+import { eventBusListener } from '@/eventBus';
 
 const reset = async () => {
   const userLocalChatCodeBridgeConfig = chatCodeBridgeConfigTemplate;
@@ -30,33 +31,34 @@ const reset = async () => {
   writeFileContentAsJson(getFilePath('USER_LOCAL_PROJECT_CONFIG_LIST'), userLocalProjectConfigList);
 }
 
-const itemStart = async (option: any) => {
-  const {
-    appBridge,
-    aiCodeBridge,
-    currentProject,
-    appBotOption
-  } = option;
+const itemStart = async (option: ChatCodeBridgeOption) => {
+  const { appBridge, aiCodeBridge } = option;
+  let aiCodeInstance: AiCodeInterface
   switch (aiCodeBridge) {
     case 'cursor':
-      new CursorAiCode(currentProject);
+      aiCodeInstance = new CursorAiCode(option);
       break;
     default:
       break;
   }
-
+  let chatAppInstance: ChatAppInterface;
   switch (appBridge) {
     case 'feishu':
-      new FeishuChatApp(appBotOption);
+      chatAppInstance = new FeishuChatApp(option) as unknown as ChatAppInterface;
       break;
     default:
       break;
   }
+  eventBusListener(
+    option,
+    aiCodeInstance!,
+    chatAppInstance!
+  );
 }
 
 export const startCoreSystem = async () => {
   let userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
-  if (isEmpty(userLocalChatCodeBridgeConfig)) reset();
+  if (isEmpty(userLocalChatCodeBridgeConfig)) await reset();
   userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
   userLocalChatCodeBridgeConfig.forEach(itemStart);
 }
