@@ -22,6 +22,7 @@
   },
   "include": [
     "main.ts",
+    "tools.ts",
     "src/**/*.ts",
     "config/**/*.ts"
   ]

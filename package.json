@@ -29,7 +29,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "tsx watch main.ts"
+    "dev": "tsx watch main.ts",
+    "tools": "tsx watch tools.ts"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.60.0",

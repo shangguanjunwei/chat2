@@ -19,4 +19,5 @@ export abstract class ChatApp implements ChatAppInterface {
   abstract sendPrefixMessage(...args: any[]): void | Promise<void>;
   abstract sendSuffixMessage(...args: any[]): void | Promise<void>;
   abstract sendWelcomeMessage(...args: any[]): void | Promise<void>;
+  abstract sendStreamMessage(...args: any[]): any | Promise<any>;
 }

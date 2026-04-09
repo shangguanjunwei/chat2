@@ -1,7 +1,10 @@
 import { ChatApp } from '@/model/chatApp';
 import * as Lark from '@larksuiteoapi/node-sdk';
 import dayjs from 'dayjs';
-import { getFormattedData } from '@/chatApp/feishu/utils/formatMessage';
+import {
+  getFormattedData,
+  getStreamingCardJson
+} from '@/chatApp/feishu/utils/formatMessage';
 
 export class FeishuChatApp extends ChatApp {
   client: Lark.Client | null = null;
@@ -37,7 +40,8 @@ export class FeishuChatApp extends ChatApp {
           this.currentMessageId = data.message.message_id;
           this.sendPrefixMessage(data);
           // 将收到的消息发送给 AI code 工具
-          this.sendMessage('**99999**')
+          // this.sendMessage('**99999**')
+          this.sendStreamMessage();
         },
         'im.chat.access_event.bot_p2p_chat_entered_v1': async (data) => {
           this.sendWelcomeMessage(data);
@@ -59,6 +63,20 @@ export class FeishuChatApp extends ChatApp {
         }),
         msg_type: 'interactive'
       }
+    });
+  }
+  sendStreamMessage() {
+    this.client!.cardkit.v1.card.create(
+      {
+        data: {
+          type: 'card_json',
+          data: getStreamingCardJson(),
+        },
+      },
+    ).then((res) => {
+      console.log(11111, res);
+    }).catch((err) => {
+      console.log(22222, err);
     });
   }
   sendMessage(message: string) {
