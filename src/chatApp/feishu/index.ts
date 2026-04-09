@@ -12,14 +12,12 @@ export class FeishuChatApp extends ChatApp {
   currentMessageId: string = '';
   currentChatId: string = '';
   currentReactionId: string = '';
+  appBotInfo: LarkClient;
 
-  constructor(appId: string, appSecret: string, domain: string) {
-    super(appId);
-    this.init({
-      appId,
-      appSecret,
-      domain,
-    });
+  constructor(botInfo: LarkClient) {
+    super();
+    this.appBotInfo = botInfo;
+    this.init(botInfo);
   }
   init(data: LarkClient): void {
     this.client = new Lark.Client({
@@ -48,7 +46,6 @@ export class FeishuChatApp extends ChatApp {
         },
       }),
     });
-    this.setStatus('on');
   }
   sendWelcomeMessage(data: any) {
     const { last_message_create_time, chat_id } = data;
@@ -125,7 +122,7 @@ export class FeishuChatApp extends ChatApp {
     const { chat_type, mentions = [] } = data.message;
     if (chat_type === 'p2p') return true;
     if (chat_type === 'group') {
-      return mentions.some((m: any) => m.bot_info.app_id === this.appId);
+      return mentions.some((m: any) => m.bot_info.app_id === this.appBotInfo.appId);
     }
     return false;
   }

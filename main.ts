@@ -12,6 +12,7 @@ import chatAppOptions from '@config/json/support-chat-app.json';
 import aiCodeBridgeOptions from '@config/json/support-ai-code-app.json';
 import { v4 as uuidv4 } from 'uuid';
 import { FeishuChatApp } from '@/chatApp/feishu';
+import { CursorAiCode } from '@/aiCode/cursor';
 
 const main = async () => {
   let userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
@@ -21,7 +22,7 @@ const main = async () => {
     const chatApp: ChatAppItemConfig = await selectAction(chatAppOptions, 'label');
     merge(userLocalChatCodeBridgeConfig, [{ uuid: uuidv4(), appBridge: chatApp.key }]);
     const chatAppConfig = await inputAction(chatApp.needConfigKeys, 'label', 'key');
-    merge(userLocalChatCodeBridgeConfig, [{ chatApp: { [chatApp.key]: chatAppConfig } }]);
+    merge(userLocalChatCodeBridgeConfig, [{ appBotOption: chatAppConfig }]);
 
     const aiCodeBridge = await selectAction(aiCodeBridgeOptions, 'label');
     merge(userLocalChatCodeBridgeConfig, [{ aiCodeBridge: aiCodeBridge.key }]);
@@ -35,11 +36,5 @@ const main = async () => {
   }
   drawLogo();
 };
-
-new FeishuChatApp(
-  'cli_a94619b0e7f8dcb1',
-  'M9Iiv8fQmvlCTyYRrfgRJhfnQQpOsTpK',
-  'https://open.feishu.cn'
-)
 
 main();

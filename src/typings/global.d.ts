@@ -13,13 +13,13 @@ type ChatAppItemConfig = {
   needConfigKeys: Item[];
 };
 
-type ChatAppStatus = 'on' | 'off';
+type ProjectItem = {
+  key: string;
+  title: string;
+  workspace: string;
+} & Item;
+
 interface ChatAppInterface {
-  _appId: string;
-  _status: ChatAppStatus;
-  appId(): string;
-  setStatus(status: ChatAppStatus): void;
-  getStatus(): ChatAppStatus;
   init(): void;
   messageIsToThisBot(...args: any[]): boolean | Promise<boolean>;
   sendPrefixMessage(...args: any[]): void | Promise<void>;
@@ -33,4 +33,30 @@ interface LarkClient {
   domain: string;
   loggerLevel?: Lark.LoggerLevel;
   logger?: Lark.Logger;
+}
+
+interface AiCodeInterface {
+  createChat(): void | Promise<any>;
+  chatByStream(...args: any[]): void | Promise<any>;
+  chatByText(...args: any[]): void | Promise<any>;
+}
+
+interface StreamJsonLine {
+  type?: string;
+  subtype?: string;
+  model?: string;
+  duration_ms?: number;
+  message?: {
+    content?: Array<{ text?: string }>;
+  };
+  tool_call?: {
+    writeToolCall?: {
+      args?: { path?: string };
+      result?: { success?: { linesCreated?: number; fileSize?: number } };
+    };
+    readToolCall?: {
+      args?: { path?: string };
+      result?: { success?: { totalLines?: number } };
+    };
+  };
 }

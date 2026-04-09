@@ -29,7 +29,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "tsx watch main.ts",
+    "dev": "tsx main.ts",
     "tools": "tsx watch tools.ts"
   },
   "dependencies": {
