@@ -96,7 +96,7 @@ export class FeishuChatApp extends ChatApp {
   async sendPrefixMessage(data: AiCode2ChatAppResponseContent) {
     const result_1 = await this.client!.im.v1.messageReaction.create({
       path: { message_id: data.option.message_id },
-      data: { reaction_type: { emoji_type: 'Typing' } },
+      data: { reaction_type: { emoji_type: 'OnIt' } },
     })
     const result_2 = await this.client!.im.message.create({
       params: { receive_id_type: 'chat_id' },
@@ -119,5 +119,9 @@ export class FeishuChatApp extends ChatApp {
         reaction_id: data.option.reaction_id,
       }
     });
+    this.client!.im.v1.messageReaction.create({
+      path: { message_id: data.option.message_id },
+      data: { reaction_type: { emoji_type: 'DONE' } },
+    })
   }
 }

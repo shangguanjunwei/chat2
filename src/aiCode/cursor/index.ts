@@ -110,8 +110,7 @@ export class CursorAiCode extends AiCode {
           case 'result': {
             const endTimeSec = dayjs();
             const totalDuration = endTimeSec.diff(startTimeSec, 'millisecond');
-            const totalTime = endTimeSec.diff(startTimeSec, 'second');
-            accumulatedText += `\n\n🎯 完成,耗时 ${totalDuration}ms (总计${totalTime}s)`;
+            accumulatedText += `\n\n🎯 完成,耗时 ${totalDuration} ms`;
             await printFn({
               text: accumulatedText,
               status: 'completed',
