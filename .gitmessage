@@ -1,0 +1,12 @@
+# <type>(<scope>): <subject>
+#
+# type: feat | fix | docs | style | refactor | perf | test | build | chore | revert
+# scope: 可选，模块或目录，如 cli、bridge、deps
+# subject: 祈使句，约 100 字内，句末不加句号
+#
+# 正文（与 subject 空一行）：
+#
+#
+# 页脚（可选）：
+# Closes #123
+# BREAKING CHANGE: 迁移说明

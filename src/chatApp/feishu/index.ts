@@ -52,7 +52,7 @@ export class FeishuChatApp extends ChatApp {
           if (!this.messageIsToThisBot(data)) return;
           const options = getFormattedData(data);
           if (!options?.content?.text) return;
-          addLog(this.option.appBotOption.app_id as string, `Q：${options.content.text}`);
+          addLog(this.option.appBotOption.appId as string, `Q：${options.content.text}`);
           eventBus.emit(`${this.option.uuid}:messageBridge`, {
             text: options.content.text,
             chat_id: data.message.chat_id,
@@ -101,7 +101,7 @@ export class FeishuChatApp extends ChatApp {
     const { chat_type, mentions = [] } = data.message;
     if (chat_type === 'p2p') return true;
     if (chat_type === 'group') {
-      return mentions.some((m: any) => m.bot_info.app_id === this.option.appBotOption.app_id);
+      return mentions.some((m: any) => m.bot_info.app_id === this.option.appBotOption.appId);
     }
     return false;
   }
@@ -135,6 +135,6 @@ export class FeishuChatApp extends ChatApp {
       path: { message_id: data.option.message_id },
       data: { reaction_type: { emoji_type: 'DONE' } },
     })
-    addLog(this.option.appBotOption.app_id as string, `A：${data.result.text}`);
+    addLog(this.option.appBotOption.appId as string, `A：${data.result.text}`);
   }
 }

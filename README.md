@@ -142,7 +142,11 @@ npx skills add WeComTeam/wecom-cli -y -g
 > | **1.0.0** | **2026-04-10** | 将 **飞书 / Lark / 企业微信** 即时消息与本地 **Cursor Agent CLI**（`agent`）对接：支持首次启动向导配置机器人凭证与本地工作区；长连接接收会话消息并驱动 `agent` 流式对话，把 IM 中的提问转为对指定代码仓库的 Agent 任务。 |
 >
 
-## 9. 许可证
+## 9. 开发提交规范
 
-> MIT
+> 参与本仓库开发时，请遵循 [CONTRIBUTING.md](./CONTRIBUTING.md) 中的 **Conventional Commits** 约定；提交说明会在本地经 **commitlint** 校验。
+
+## 10. 许可证
+
+> 专有软件，保留所有权利。详见 [LICENSE.txt](./LICENSE.txt)。
 
