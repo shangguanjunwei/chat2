@@ -9,6 +9,7 @@ import aiCodeBridgeOptions from '@config/json/support-ai-code-app.json';
 import { v4 as uuidv4 } from 'uuid';
 import { writeFileContentAsJson } from "@/utils/fileEvents";
 import { FeishuChatApp } from '@/chatApp/feishu';
+import { WecomChatApp } from '@/chatApp/wecom';
 import { CursorAiCode } from '@/aiCode/cursor';
 import { eventBusListener } from '@/eventBus';
 
@@ -45,6 +46,9 @@ const itemStart = async (option: ChatCodeBridgeOption) => {
   switch (appBridge) {
     case 'feishu':
       chatAppInstance = new FeishuChatApp(option) as unknown as ChatAppInterface;
+      break;
+    case 'wecom':
+      chatAppInstance = new WecomChatApp(option) as unknown as ChatAppInterface;
       break;
     default:
       break;

@@ -6,12 +6,6 @@ import {
   getStreamingCardJson
 } from '@/chatApp/feishu/utils/formatMessage';
 import eventBus from '@/eventBus';
-
-const headerTitleEnum = {
-  thinking: '思考中...',
-  processing: '生成中...',
-  completed: '完成',
-}
 export class FeishuChatApp extends ChatApp {
   client: Lark.Client | null = null;
   wsClient: Lark.WSClient | null = null;

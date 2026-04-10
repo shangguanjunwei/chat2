@@ -12,7 +12,7 @@ export const eventBusListener = (
   aiCodeInstance: AiCodeInterface,
   chatAppInstance: ChatAppInterface
 ) => {
-  const { uuid, currentChatSession, currentChatSessionCreatedAt } = option;
+  const { uuid, currentChatSessionCreatedAt } = option;
   eventBus.on(`${uuid}:messageBridge`, async (msgContent: ChatApp2AiCodeMessageContent) => {
     const prefixResult = await chatAppInstance.sendPrefixMessage({
       option: msgContent,
@@ -36,18 +36,12 @@ export const eventBusListener = (
       }, 200);
       await aiCodeInstance.chatByStream(msgContent.text, fn);
     };
-
     if (!currentChatSessionCreatedAt || dayjs().isAfter(dayjs(currentChatSessionCreatedAt).endOf('day'))) {
       const sessionId = await aiCodeInstance.createChat();
       eventBus.emit(`${uuid}:setCurrentChatSession`, { sessionId, callback });
     } else {
       await callback();
     }
-
-    // aiCodeInstance.chatByStream(message, (content: any) => {
-    //   console.log('chatApp.content', content);
-    // });
-    // chatAppInstance.sendSuffixMessage();
   });
   eventBus.on(`${uuid}:setCurrentChatSession`, (content: { sessionId: string, callback: () => void }) => {
     const { sessionId, callback } = content;
