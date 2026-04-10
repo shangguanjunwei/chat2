@@ -18,6 +18,7 @@
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
+    "ab": "dist/cli.js"
   },
   "files": [
     "dist",
