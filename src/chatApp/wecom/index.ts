@@ -1,7 +1,7 @@
 import AiBot, { generateReqId, WSClient, WsFrame } from '@wecom/aibot-node-sdk';
 import { ChatApp } from '@/model/chatApp';
 import eventBus from '@/eventBus';
-
+import { addLog } from '@/utils/log';
 export class WecomChatApp extends ChatApp {
   option: ChatCodeBridgeOption;
   wsClient: WSClient | null = null;
@@ -15,11 +15,12 @@ export class WecomChatApp extends ChatApp {
       ...data.appBotOption as any,
     }).connect()
       .on('authenticated', () => {
-        console.log('🔐 认证成功');
+        addLog(this.option.appBotOption.botId as string, '🔐 认证成功');
       })
       .on('message.text', (frame: WsFrame) => {
         if (!this.messageIsToThisBot(frame)) return;
         const streamId = generateReqId('stream');
+        addLog(this.option.appBotOption.botId as string, `Q：${frame?.body?.text?.content}`);
         eventBus.emit(`${data.uuid}:messageBridge`, {
           text: frame?.body?.text?.content,
           msgid: frame?.body?.msgid,
@@ -53,6 +54,7 @@ export class WecomChatApp extends ChatApp {
     return data.option;
   }
   async sendSuffixMessage(data: AiCode2ChatAppResponseContent) {
+    addLog(this.option.appBotOption.botId as string, `A：${data.result.text}`);
     this.wsClient!.replyStream(data.option.frame, data.option.streamId, data.result.text, true);
   }
   sendWelcomeMessage(frame: WsFrame) {
