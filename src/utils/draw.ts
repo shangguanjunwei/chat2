@@ -1,4 +1,19 @@
-import pkg from '../../package.json' with { type: 'json' };
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+function readPackageJson(): { version: string } {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const candidates = [join(here, '..', 'package.json'), join(here, '..', '..', 'package.json')];
+  for (const p of candidates) {
+    if (existsSync(p)) {
+      return JSON.parse(readFileSync(p, 'utf8')) as { version: string };
+    }
+  }
+  return { version: '0.0.0' };
+}
+
+const pkg = readPackageJson();
 
 const INNER_WIDTH = 50;
 

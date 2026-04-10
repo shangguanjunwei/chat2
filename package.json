@@ -16,7 +16,15 @@
   "license": "MIT",
   "author": "524013038@qq.com",
   "type": "module",
-  "main": "main.js",
+  "main": "dist/cli.js",
+  "bin": {
+    "chat-code-bridge": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.txt"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shangguanjunwei/chat-code-bridge.git"
@@ -29,7 +37,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "tsx watch main.ts"
+    "dev": "tsx watch main.ts",
+    "build": "tsup",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.60.0",
@@ -42,6 +52,7 @@
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^25.5.2",
+    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }

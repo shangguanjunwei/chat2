@@ -1,7 +1,3 @@
-import { drawLogo } from '@/utils/draw';
-import { startCoreSystem } from '@/coreSystem';
+import { run } from './bin/cli';
 
-(async () => {
-  await startCoreSystem();
-  drawLogo();
-})();
+void run();
