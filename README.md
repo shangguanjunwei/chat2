@@ -1,4 +1,4 @@
-# chat-code-bridge
+# @amoayun/chat-code-bridge
 
 在飞书（Lark）或企业微信里收发消息，并把对话桥接到本机的 **Cursor Agent CLI**（`agent`），用聊天驱动本地开发工作流。
 
@@ -15,7 +15,7 @@
 > 当前仅支持**全局安装**（不推荐作为项目依赖安装到 `node_modules`）。
 >
 > ```bash
-> npm install -g chat-code-bridge
+> npm install -g @amoayun/chat-code-bridge
 > ```
 >
 > 全局安装后，在终端执行：
@@ -38,7 +38,7 @@
 
 ## 4. 配置文件位置
 
-> 配置保存在**用户主目录**下（与当前在哪个文件夹执行命令无关）：
+> 配置保存在**用户主目录**下（与当前在哪个文件夹执行命令无关，⚠️修改完配置文件后需要重新启动）：
 >
 >
 > | 文件                                             | 说明                                                                                        |
@@ -93,13 +93,56 @@ interface ChatCodeBridgeOption {
 > - 该目录即你希望 Agent 操作的真实项目根目录；
 > - 本机已正确安装 Cursor Agent CLI，`agent` 在 `PATH` 中可用。
 
-## 7. 版本说明
+## 7. 拓展（可选）
 
-> | 当前版本 | 发布日期 | 说明 |
-> |----------|----------|------|
+以下能力与本桥接工具**相互独立**，可按需选用。
+
+【⚠️】企微机器人可以控制飞书cli来操作飞书，飞书机器人也可以控制企微cli 进行操作企微，不受平台限制！！
+
+如果你的cursor 的 permissions 配置了 Shell 权限，下面的事可以直接语音转文字，发给机器人让机器人安装！
+
+### 1. 飞书能力
+
+在终端中直接使用飞书开放平台能力：安装官方 **Lark / 飞书 CLI**，再安装配套的 **AI Agent Skills**，便于在命令行或 AI 助手中编排日历、文档、消息等场景。总览见 [https://feishu-cli.com/zh/](https://feishu-cli.com/zh/)。
+
+```bash
+# 飞书 CLI（Lark CLI）：全局安装 @larksuite/cli，命令名为 lark-cli
+npm install -g @larksuite/cli
+
+# 飞书的 CLI Skill：为 Cursor、Claude Code 等安装配套 Skill；安装后建议重启 AI 开发工具
+npx skills add larksuite/cli -y -g
+
+# 文档与源码
+# Skill 参考：https://feishu-cli.com/zh/feishu-cli-ai-agent-skills.html
+# 仓库：https://github.com/larksuite/cli
+```
+
+### 2. 企业微信能力
+
+在终端中直接使用企业微信开放平台能力：安装官方 **WeCom / 企业微信 CLI**，再安装配套的 **AI Agent Skills**，便于在命令行或 AI 助手中编排日历、文档、消息等场景。总览见 [https://open.work.weixin.qq.com/help2/pc/21676](https://open.work.weixin.qq.com/help2/pc/21676)。（企业微信CLI目前优先对≤10人企业开放使用）
+
+```bash
+# 企业微信 CLI（WeCom CLI）：全局安装 @wecom/cli，命令名为 wecom-cli
+npm install -g @wecom/cli
+
+# 企业微信的 CLI Skill：为 Cursor、Claude Code 等安装配套 Skill；安装后建议重启 AI 开发工具
+npx skills add WeComTeam/wecom-cli -y -g
+
+# 文档与源码
+# Skill 参考：https://open.work.weixin.qq.com/help2/pc/21676
+```
+
+### 3.更多能力等你探索...
+
+## 8. 版本说明
+
+>
+> | 当前版本      | 发布日期           | 说明                                                                                                                                           |
+> | --------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 > | **1.0.0** | **2026-04-10** | 将 **飞书 / Lark / 企业微信** 即时消息与本地 **Cursor Agent CLI**（`agent`）对接：支持首次启动向导配置机器人凭证与本地工作区；长连接接收会话消息并驱动 `agent` 流式对话，把 IM 中的提问转为对指定代码仓库的 Agent 任务。 |
+>
 
-## 8. 许可证
+## 9. 许可证
 
-> MIT（见仓库中的 `LICENSE.txt`）。
+> MIT
 

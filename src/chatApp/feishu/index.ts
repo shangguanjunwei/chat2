@@ -21,6 +21,25 @@ export class FeishuChatApp extends ChatApp {
     const { appBotOption } = data;
     this.client = new Lark.Client({
       ...appBotOption as any,
+      // loggerLevel: Lark.LoggerLevel.warn,
+      // logger: {
+      //   error: () => {
+      //     console.log('error', arguments);
+      //   },
+      //   warn: () => {
+      //     console.log('warn', arguments);
+      //   },
+      //   info: () => {
+      //     console.log('info', arguments);
+      //   },
+      //   debug: () => {
+      //     console.log('debug', arguments);
+      //   },
+      //   trace: () => {
+      //     console.log('trace', arguments);
+      //   },
+      // },
+      disableTokenCache: false,
       appType: Lark.AppType.SelfBuild,
     });
     this.wsClient = new Lark.WSClient({

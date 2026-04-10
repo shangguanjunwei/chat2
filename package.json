@@ -1,7 +1,9 @@
 {
-  "name": "chat-code-bridge",
+  "name": "@amoayun/chat-code-bridge",
   "version": "1.0.0",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Bridge Feishu (Lark) and WeCom IM to the Cursor Agent CLI (agent) for chat-driven local workflows.",
   "keywords": [
     "feishu",
@@ -37,7 +39,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "tsx main.ts",
+    "dev": "tsx watch main.ts",
     "build": "tsup && node scripts/obfuscate-dist.mjs",
     "build:dev": "tsup --no-minify --sourcemap",
     "prepublishOnly": "npm run build"
