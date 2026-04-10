@@ -1,7 +1,9 @@
 {
-  "name": "chat-code-bridge",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@amoayun/chat-code-bridge",
+  "version": "1.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Bridge Feishu (Lark) and WeCom IM to the Cursor Agent CLI (agent) for chat-driven local workflows.",
   "keywords": [
     "feishu",
@@ -16,23 +18,39 @@
   "license": "MIT",
   "author": "524013038@qq.com",
   "type": "module",
-  "main": "main.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shangguanjunwei/chat-code-bridge.git"
+  "main": "dist/cli.js",
+  "bin": {
+    "chat-code-bridge": "dist/cli.js"
   },
-  "bugs": {
-    "url": "https://github.com/shangguanjunwei/chat-code-bridge/issues"
-  },
-  "homepage": "https://github.com/shangguanjunwei/chat-code-bridge#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "homepage": "https://www.commontalk.cn/",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "dev": "node main.js"
+    "dev": "tsx watch main.ts",
+    "build": "tsup && node scripts/obfuscate-dist.mjs",
+    "build:dev": "tsup --no-minify --sourcemap",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.60.0",
-    "@wecom/aibot-node-sdk": "^1.0.6"
+    "@wecom/aibot-node-sdk": "^1.0.6",
+    "dayjs": "^1.11.20",
+    "lodash-es": "^4.18.1",
+    "mitt": "^3.0.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^25.5.2",
+    "javascript-obfuscator": "^5.4.1",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   }
 }

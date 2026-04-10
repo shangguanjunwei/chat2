@@ -1,194 +1,148 @@
-# chat-code-bridge
+# @amoayun/chat-code-bridge
 
-将 **即时通讯（飞书 / 企业微信）** 与本地 **Cursor Agent CLI** 桥接的 Node 项目：收到聊天消息后调用本机 `agent`，再把模型输出写回会话。
+在飞书（Lark）或企业微信里收发消息，并把对话桥接到本机的 **Cursor Agent CLI**（`agent`），用聊天驱动本地开发工作流。
 
-| 能力 |
-| --- |
-| 飞书 IM |
-| 企业微信 |
-| Cursor |
+## 1. 环境要求
 
-**快速导航：** [环境要求](#环境要求) · [快速开始](#快速开始) · [目录结构](#目录结构说明) · [数据流](#数据流) · [消息发送 API](#消息发送)
+> - **Node.js**：版本 `>= 22`（与 `package.json` 中 `engines` 一致）。安装与说明见 [Node.js 下载与安装](https://nodejs.org/en/download)、[官方入门文档](https://nodejs.org/en/learn/getting-started/introduction-to-nodejs)。
+> - **Cursor Agent CLI**：终端中可执行命令 `agent`（本工具会调用 `agent create-chat`、`agent -p ...` 等）。安装与说明见 [Cursor CLI 安装文档](https://cursor.com/docs/cli/installation)。
+> - **IM 侧（飞书 / Lark / 企业微信）**：已在对应平台创建机器人或自建应用，并准备好 **App ID / Secret** 等凭证（字段说明见第 5 节）。各平台可参考：  
+>   - 飞书： [创建应用（5 分钟上手）](https://open.feishu.cn/document/home/develop-a-bot-in-5-minutes/create-an-app)、[机器人开发快速入门](https://open.feishu.cn/document/develop-robots/quick-start)  
+>   - 企业微信： [智能机器人教程](https://developer.work.weixin.qq.com/tutorial/robot)、[开始开发](https://developer.work.weixin.qq.com/document/path/96713)
 
----
+## 2. 安装
 
-## 环境要求
+> 当前仅支持**全局安装**（不推荐作为项目依赖安装到 `node_modules`）。
+>
+> ```bash
+> npm install -g @amoayun/chat-code-bridge
+> ```
+>
+> 全局安装后，在终端执行：
+>
+> ```bash
+> chat-code-bridge
+> ```
 
-- **Node.js**：建议当前 LTS；本项目为 ES Module（`package.json` 中 `"type": "module"`）。
-- **Cursor Agent CLI**：PATH 中需有名为 `agent` 的可执行文件（与代码中 `spawn('agent', …)` 一致）。
-- **飞书应用**（若选飞书）：自建应用、机器人能力、事件 `im.message.receive_v1` 等，按开放平台配置 `appId` / `appSecret` / `domain`。
-- **企业微信机器人**（若选企微）：后台获取 `botId`、`secret`，与 `@wecom/aibot-node-sdk` 要求一致。
+## 3. 使用方法
 
----
+> 1. 在终端执行全局命令 `chat-code-bridge`。
+> 2. **首次运行**若用户目录下还没有配置文件，会进入交互式向导，依次选择：
+>   - **聊天应用**：飞书、Lark（国际版）或企业微信；
+>   - **机器人凭证**：按提示填写（字段名见第 5 节）；
+>   - **AI 代码桥**：当前支持 **Cursor**；
+>   - **当前项目**：向导会列出本地项目配置，首次一般为当前工作区对应的项。
+> 3. 配置写入完成后，进程会保持运行，通过 IM 与 `agent` 建立会话并处理消息。
+>
+> 之后再次启动时，会读取已有配置并直接拉起桥接，无需重复填写（除非删除配置文件）。
 
-## 快速开始
+## 4. 配置文件位置
+
+> 配置保存在**用户主目录**下（与当前在哪个文件夹执行命令无关，⚠️修改完配置文件后需要重新启动）：
+>
+>
+> | 文件                                             | 说明                                                                                        |
+> | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
+> | `~/.chat-code-bridge/chat-code-bridge.json`    | 桥接主配置（渠道、凭证、当前项目、`uuid` 等）。**类型：`ChatCodeBridgeOption[]`**（数组元素为 `ChatCodeBridgeOption`）。 |
+> | `~/.chat-code-bridge/project-config-list.json` | 本地可选项目列表。**类型：`ProjectItem[]`**（数组元素为 `ProjectItem`）。                                     |
+>
+
+```ts
+type Item = Record<string, unknown>;
+
+type ProjectItem = {
+  key: string;
+  title: string;
+  workspace: string;
+} & Item;
+
+interface ChatCodeBridgeOption {
+  uuid: string;
+  appBridge: string;
+  aiCodeBridge: string;
+  currentProject: ProjectItem;
+  appBotOption: Item;
+  currentChatSession: string;
+  currentChatSessionCreatedAt?: number;
+}
+```
+
+> 如需**完全重新向导配置**，可备份后删除 `chat-code-bridge.json`（或清空其内容），下次启动会再次进入初始化流程。
+
+## 5. 各渠道需填写的配置
+
+> ### 飞书 / Lark（国际版）
+>
+> - **appId**：应用 App ID  
+> - **appSecret**：应用 Secret  
+> - **domain**：开放平台 API 根地址，例如飞书 `https://open.feishu.cn`、Lark 国际版 `https://open.larksuite.com`
+>
+> 飞书开放平台首页：[https://open.feishu.cn](https://open.feishu.cn)  
+>
+> ### 企业微信
+>
+> - **botId**：机器人 ID  
+> - **secret**：机器人 Secret
+>
+> 此外，还请在各开放平台控制台为机器人开启**即时消息**等相关权限，并完成与本机长连接/Webhook 要求相符的应用配置（以各平台文档为准）。
+
+## 6. Cursor 与本地工作区
+
+> 桥接会为当前选中的 `**currentProject.workspace`** 目录调用 `agent`，请确保：
+>
+> - 该目录即你希望 Agent 操作的真实项目根目录；
+> - 本机已正确安装 Cursor Agent CLI，`agent` 在 `PATH` 中可用。
+
+## 7. 拓展（可选）
+
+以下能力与本桥接工具**相互独立**，可按需选用。
+
+【⚠️】企微机器人可以控制飞书cli来操作飞书，飞书机器人也可以控制企微cli 进行操作企微，不受平台限制！！
+
+如果你的cursor 的 permissions 配置了 Shell 权限，下面的事可以直接语音转文字，发给机器人让机器人安装！
+
+### 1. 飞书能力
+
+在终端中直接使用飞书开放平台能力：安装官方 **Lark / 飞书 CLI**，再安装配套的 **AI Agent Skills**，便于在命令行或 AI 助手中编排日历、文档、消息等场景。总览见 [https://feishu-cli.com/zh/](https://feishu-cli.com/zh/)。
 
 ```bash
-npm install
-npm run dev
+# 飞书 CLI（Lark CLI）：全局安装 @larksuite/cli，命令名为 lark-cli
+npm install -g @larksuite/cli
+
+# 飞书的 CLI Skill：为 Cursor、Claude Code 等安装配套 Skill；安装后建议重启 AI 开发工具
+npx skills add larksuite/cli -y -g
+
+# 文档与源码
+# Skill 参考：https://feishu-cli.com/zh/feishu-cli-ai-agent-skills.html
+# 仓库：https://github.com/larksuite/cli
 ```
 
-按提示依次选择：**桥接平台**（飞书 / Lark 国际版 / 企业微信）→ **项目 workspace**。凭证不全时会交互补全并写回用户侧配置；首次运行会展开默认配置树。
+### 2. 企业微信能力
 
-**入口行为（与 `main.js` 一致）：**
+在终端中直接使用企业微信开放平台能力：安装官方 **WeCom / 企业微信 CLI**，再安装配套的 **AI Agent Skills**，便于在命令行或 AI 助手中编排日历、文档、消息等场景。总览见 [https://open.work.weixin.qq.com/help2/pc/21676](https://open.work.weixin.qq.com/help2/pc/21676)。（企业微信CLI目前优先对≤10人企业开放使用）
 
-- `bridge.key === 'feishu'` → `startFeishuMessageListener(bridge)`
-- `bridge.key === 'wecom'` → `startWecomMessageListener(bridge)`
+```bash
+# 企业微信 CLI（WeCom CLI）：全局安装 @wecom/cli，命令名为 wecom-cli
+npm install -g @wecom/cli
 
-菜单中的 **「Lark（飞书国际版）」** 与飞书共用同一套 Lark SDK；若需从菜单启动国际版，请在 `main.js` 中增加 `bridge.key === 'lark'` 分支并同样调用 `startFeishuMessageListener(bridge)`（凭证字段与 `Client` 一致）。
+# 企业微信的 CLI Skill：为 Cursor、Claude Code 等安装配套 Skill；安装后建议重启 AI 开发工具
+npx skills add WeComTeam/wecom-cli -y -g
 
----
-
-## 目录结构说明
-
-```
-chat-code-bridge/
-├── main.js                         # 入口：applyTreeNode → selectAppBridge → selectProjectWorkspace → 按 key 启动监听
-├── package.json
-├── package-lock.json
-├── README.md
-├── .gitignore
-├── utils/
-│   ├── applyTreeNode.js
-│   ├── getUserBridgeConfigPath.js
-│   ├── readCofig.js                # 读取用户侧桥接配置
-│   ├── writeConfig.js              # 点路径合并写入用户配置
-│   └── writeLog.js                 # 按日落盘运行日志
-├── .vscode/
-│   └── settings.json
-├── src/
-│   ├── chatApp/
-│   │   ├── index.js                # selectAppBridge：菜单选桥接、读/写用户配置
-│   │   ├── feishu/
-│   │   │   ├── index.js            # startFeishuMessageListener：WS + 消息 → Cursor → 回写
-│   │   │   └── send-message/       # 文本 / 富文本 Markdown / 卡片 / 表情
-│   │   ├── lark/
-│   │   │   ├── index.js            # 再导出 startLarkMessageListener（同 feishu）
-│   │   │   └── send-message/       # 自 feishu 再导出（当前无 sendMarkdownMessage 再导出）
-│   │   └── wecom/
-│   │       └── index.js            # startWecomMessageListener（@wecom/aibot-node-sdk）
-│   └── aiCode/
-│       └── cursor/
-│           ├── index.js            # sendMessageToCursor / sendMessageToCursorImpl（agent CLI）
-│           └── check-workspace.js  # selectProjectWorkspace，写入 currentProject
-└── node_modules/
+# 文档与源码
+# Skill 参考：https://open.work.weixin.qq.com/help2/pc/21676
 ```
 
-### 各目录用途摘要
+### 3.更多能力等你探索...
 
-| 路径 | 用途 |
-| --- | --- |
-| `utils/` | 配置路径、读写用户配置、日志 |
-| `src/chatApp/feishu/` | 飞书监听与消息发送实现 |
-| `src/chatApp/lark/` | 与 feishu 同逻辑的命名空间再导出 |
-| `src/chatApp/wecom/` | 企业微信监听与流式回复 |
-| `src/aiCode/cursor/` | Cursor Agent CLI 与会话文件、workspace 选择 |
+## 8. 版本说明
 
----
+>
+> | 当前版本      | 发布日期           | 说明                                                                                                                                           |
+> | --------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+> | **1.0.0** | **2026-04-10** | 将 **飞书 / Lark / 企业微信** 即时消息与本地 **Cursor Agent CLI**（`agent`）对接：支持首次启动向导配置机器人凭证与本地工作区；长连接接收会话消息并驱动 `agent` 流式对话，把 IM 中的提问转为对指定代码仓库的 Agent 任务。 |
+>
 
-## 数据流
+## 9. 许可证
 
-### 进程启动
+> MIT
 
-1. `main.js` 通过 `applyTreeNode` 将默认配置树展开到用户环境。
-2. `selectAppBridge()` 载入可选桥接定义；凭证优先来自 `readCofig`，缺失则交互输入并由 `writeConfig` 写回。
-3. `selectProjectWorkspace()`（`check-workspace.js`）载入项目 workspace 列表，将选中项写入用户配置中的 `currentProject`。
-4. 按 `bridge.key` 调用飞书或企业微信监听。
-
-### 飞书：消息 → Cursor → 回写
-
-长连接 `WSClient` 处理 `im.message.receive_v1`：仅处理单聊，或群聊中 **@ 本机器人** 的消息。处理顺序与 `src/chatApp/feishu/index.js`、`src/aiCode/cursor/index.js` 一致：
-
-1. `writeLog` 记录原始事件（可选调试用）。
-2. 解析文本与 `chat_id` / `message_id`；无文本则返回。
-3. `sendMessageReaction`：对原消息添加 **`Typing`** 表情。
-4. `sendMessageToCursor`：根据用户配置中的 **`currentProject.workspace`**（无则回退 `process.cwd()`）调用 `agent`；会话持久化以便 `--resume`。
-5. 使用 **`sendMarkdownMessage`**（`msg_type: post`，富文本 `md` 段）将结果发回同一 `chat_id`。
-6. `deleteMessageReaction`：移除第 3 步的 Typing 表情。
-
-```mermaid
-flowchart TB
-  subgraph init["启动链"]
-    M[main.js]
-    A[applyTreeNode]
-    S[selectAppBridge]
-    W[selectProjectWorkspace]
-    M --> A --> S --> W
-    W --> B[bridge + currentProject]
-  end
-
-  subgraph im["飞书 IM"]
-    B --> L[startFeishuMessageListener]
-    L --> WS[WSClient]
-    WS --> E[im.message.receive_v1]
-    E --> F{单聊或群聊 @ 本机器人?}
-    F -->|否| X[忽略]
-    F -->|是| T[解析文本]
-  end
-
-  subgraph bridge["表情 → Cursor → Markdown → 删表情"]
-    T --> R[sendMessageReaction Typing]
-    R --> C[sendMessageToCursor]
-    C --> G["agent CLI"]
-    G --> MD[sendMarkdownMessage]
-    MD --> DR[deleteMessageReaction]
-  end
-```
-
-### 企业微信：消息 → Cursor → 流式回写
-
-`startWecomMessageListener` 使用 `AiBot.WSClient`：收到文本后先 `replyStream` 中间提示，再 `sendMessageToCursorImpl` 拉取完整回复，最后以流式结束标记发回（详见 `src/chatApp/wecom/index.js`）。
-
-### 端到端时序（飞书）
-
-```mermaid
-sequenceDiagram
-  participant U as 用户
-  participant Lark as 飞书 IM
-  participant App as chat-code-bridge
-  participant Agent as Cursor agent CLI
-
-  U->>Lark: 文本（单聊或群聊 @ 机器人）
-  Lark->>App: WebSocket im.message.receive_v1
-  App->>Lark: sendMessageReaction（Typing）
-  App->>Agent: sendMessageToCursor（用户文本）
-  Agent->>App: 模型输出
-  App->>Lark: sendMarkdownMessage
-  App->>Lark: deleteMessageReaction
-  Lark->>U: 展示机器人消息
-```
-
----
-
-## 消息发送
-
-实现在 **`src/chatApp/feishu/send-message/`**；`lark/send-message` 为再导出（与 feishu 对齐的部分）。调用方传入已配置好的 `Client`，模块内不写密钥。
-
-| 模块 | 导出 | 说明 |
-| --- | --- | --- |
-| `sendTextMessage.js` | `sendTextMessage` | `im.v1.message.create`，`msg_type: text` |
-| `sendMarkdownMessage.js` | `sendMarkdownMessage` | `msg_type: post`，富文本中 `md` 段渲染 Markdown（列表、代码块等） |
-| `sendInteractiveCardMessage.js` | `sendInteractiveCardMessage` | `msg_type: interactive`，或 `defaultCard` 快捷生成 |
-| `sendMessageReaction.js` | `sendMessageReaction` / `deleteMessageReaction` | 消息表情创建与删除 |
-
----
-
-## 新增记录
-
-约定：有功能合并或发布时，在表格**顶部**追加一行（最新在上）。
-
-| 日期 | 说明 |
-| --- | --- |
-| 2026-04-07 | 文首「能力」表去掉「说明」列，仅保留能力名称列。 |
-| 2026-04-07 | README 删除「用户目录配置」整节，并弱化正文中的家目录路径表述。 |
-| 2026-04-07 | 重写 README：对齐 `main.js`（飞书 / 企微、`selectProjectWorkspace`、`sendMarkdownMessage`、企微 SDK）、补充 workspace 选择与 `writeLog`；说明 Lark 菜单项与入口分支关系。 |
-| 2026-04-07 | 数据流与源码对齐：去掉已不存在的 `message_id` 去重描述；表情为 `Typing`；会话文件为 `chat-code-bridge-session.json`；新增 `docs/feishu-project-overview.md` 供飞书文档导入。 |
-| 2026-04-06 | 「数据流」补充 `message_id` 去重步骤；流程图与时序图与 `feishu/index.js` 对齐；增加本节总述。 |
-| 2026-04-06 | `README.md` 目录结构按当前仓库更新：`lark/` 为再导出、`feishu/` 为发送实现；各目录摘要与「功能说明」同步。 |
-| 2026-04-06 | `README.md` 文首增加快速导航；「数据流」补充参与者时序图（sequenceDiagram）。 |
-| 2026-04-06 | `README.md` 新增「数据流」：启动链、飞书 WS → Cursor Agent CLI → 回写文本；附 Mermaid 示意图；说明 `lark/` 与当前入口关系。 |
-| 2026-04-06 | `README.md` 同步整体目录结构：`utils/`、`feishu`/`lark` 双轨 `send-message`、`aiCode/cursor`；更新入口与表格说明；移除已不存在的 `lark-cli`/`cursor-cli` 与 `main copy 2.js` 描述。 |
-| 2026-04-06 | `README.md` 补充「功能说明」：三个发送相关模块的用途、接口要点；目录树同步 `sendInteractiveCardMessage.js`。 |
-| 2026-04-06 | 新增 `sendInteractiveCardMessage.js`：发送 `interactive` 卡片（自定义 `content` 或 `defaultCard`）。 |
-| 2026-04-06 | 新增根目录 `README.md`：目录结构说明与「新增记录」模板。 |
-| 2026-04-06 | 初版 `send-message`：文本消息、消息表情回复；导出为异步箭头函数。 |
