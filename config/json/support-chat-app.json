@@ -1,0 +1,52 @@
+[
+  {
+    "key": "feishu",
+    "label": "飞书",
+    "needConfigKeys": [
+      {
+        "key": "appId",
+        "label": "App ID"
+      },
+      {
+        "key": "appSecret",
+        "label": "App Secret"
+      },
+      {
+        "key": "domain",
+        "label": "Domain（飞书示例 https://open.feishu.cn）"
+      }
+    ]
+  },
+  {
+    "key": "lark",
+    "label": "Lark（飞书国际版）",
+    "needConfigKeys": [
+      {
+        "key": "appId",
+        "label": "App ID"
+      },
+      {
+        "key": "appSecret",
+        "label": "App Secret"
+      },
+      {
+        "key": "domain",
+        "label": "Domain（国际版示例 https://open.larksuite.com）"
+      }
+    ]
+  },
+  {
+    "key": "wecom",
+    "label": "企业微信",
+    "needConfigKeys": [
+      {
+        "key": "botId",
+        "label": "botId"
+      },
+      {
+        "key": "secret",
+        "label": "secret"
+      }
+    ]
+  }
+]
