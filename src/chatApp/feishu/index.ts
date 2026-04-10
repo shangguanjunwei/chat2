@@ -9,9 +9,6 @@ import eventBus from '@/eventBus';
 export class FeishuChatApp extends ChatApp {
   client: Lark.Client | null = null;
   wsClient: Lark.WSClient | null = null;
-  currentMessageId: string = '';
-  currentChatId: string = '';
-  currentReactionId: string = '';
   option: ChatCodeBridgeOption;
 
   constructor(option: ChatCodeBridgeOption) {

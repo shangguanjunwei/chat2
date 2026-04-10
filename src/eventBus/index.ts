@@ -43,6 +43,7 @@ export const eventBusListener = (
       await callback();
     }
   });
+
   eventBus.on(`${uuid}:setCurrentChatSession`, (content: { sessionId: string, callback: () => void }) => {
     const { sessionId, callback } = content;
     const userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));

@@ -1,4 +1,4 @@
-import AiBot, { generateReqId, WSClient } from '@wecom/aibot-node-sdk';
+import AiBot, { generateReqId, WSClient, WsFrame } from '@wecom/aibot-node-sdk';
 import { ChatApp } from '@/model/chatApp';
 import eventBus from '@/eventBus';
 
@@ -17,7 +17,7 @@ export class WecomChatApp extends ChatApp {
       .on('authenticated', () => {
         console.log('🔐 认证成功');
       })
-      .on('message.text', (frame: any) => {
+      .on('message.text', (frame: WsFrame) => {
         if (!this.messageIsToThisBot(frame)) return;
         const streamId = generateReqId('stream');
         eventBus.emit(`${data.uuid}:messageBridge`, {
@@ -55,7 +55,7 @@ export class WecomChatApp extends ChatApp {
   async sendSuffixMessage(data: AiCode2ChatAppResponseContent) {
     this.wsClient!.replyStream(data.option.frame, data.option.streamId, data.result.text, true);
   }
-  sendWelcomeMessage(frame: any) {
+  sendWelcomeMessage(frame: WsFrame) {
     this.wsClient!.replyWelcome(frame, {
       msgtype: 'text',
       text: { content: '元气满满的一天～\n您好！我是智能助手，有什么可以帮您的吗？' },
