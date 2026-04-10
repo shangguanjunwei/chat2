@@ -22,7 +22,6 @@
   },
   "include": [
     "main.ts",
-    "tools.ts",
     "src/**/*.ts",
     "config/**/*.ts",
     "bin/cli.ts"
