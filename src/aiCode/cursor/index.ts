@@ -104,7 +104,7 @@ export class CursorAiCode extends AiCode {
               lastMessageText = piece;
               accumulatedText += piece;
               await printFn({
-                text: accumulatedText,
+                text: accumulatedText.trim() || '🤔 思考中...',
                 status: 'processing',
               });
             }
