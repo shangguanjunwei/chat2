@@ -111,8 +111,7 @@ export class CursorAiCode extends AiCode {
             break;
           }
           case 'result': {
-            const endTimeSec = dayjs();
-            const totalDuration = endTimeSec.diff(startTimeSec, 'millisecond');
+            const totalDuration = dayjs().diff(startTimeSec, 'millisecond');
             await printFn({
               text: [
                 (line as any).result ?? '',

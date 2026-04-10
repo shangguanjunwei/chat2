@@ -1,4 +1,5 @@
-import { pathToFileURL } from 'node:url';
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { drawLogo } from '@/utils/draw';
 import { startCoreSystem } from '@/coreSystem';
@@ -9,9 +10,19 @@ export async function run(): Promise<void> {
   drawLogo();
 }
 
-const isMainModule =
-  Boolean(process.argv[1]) &&
-  import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+/** npm 全局 bin 多为指向 dist/cli.js 的 symlink，argv[1] 与 import.meta.url 路径不一致，需 realpath 再比 */
+const isMainModule = (() => {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return (
+      realpathSync(resolve(entry)) ===
+      realpathSync(fileURLToPath(import.meta.url))
+    );
+  } catch {
+    return false;
+  }
+})();
 
 if (isMainModule) {
   run().catch((err: unknown) => {

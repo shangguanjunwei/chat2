@@ -15,7 +15,10 @@ export default defineConfig({
   target: 'node22',
   outDir: 'dist',
   clean: true,
-  sourcemap: true,
+  /** esbuild 压缩；发布产物后续还会经 scripts/obfuscate-dist.mjs 混淆 */
+  minify: true,
+  /** 混淆后与源码无法一一对应，关闭 map 避免误导 */
+  sourcemap: false,
   banner: {
     js: '#!/usr/bin/env node',
   },
