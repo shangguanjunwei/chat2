@@ -13,6 +13,15 @@ import { homedir } from 'node:os';
 export const USER_HOME_PATH = homedir();
 export const BASE_PATH = process.cwd();
 
+// 创建用户目录
+export const createDirectory = (dirname: string) => {
+  const dir = join(USER_HOME_PATH, dirname);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+};
+
 // 读取文件内容
 const readFileContent = (filePath: string): string | null => {
   if (!existsSync(filePath)) return null;

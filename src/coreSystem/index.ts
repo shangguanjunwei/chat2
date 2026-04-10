@@ -1,5 +1,3 @@
-import { readFileContentAsJson } from "@/utils/fileEvents";
-import { getFilePath } from "@/utils/fileEvents";
 import { selectAction } from '@/utils/selectAction';
 import { inputAction } from '@/utils/inputAction';
 import { merge, isEmpty } from 'lodash-es';
@@ -7,9 +5,15 @@ import chatCodeBridgeConfigTemplate from '@config/json/chat-code-bridge.template
 import chatAppOptions from '@config/json/support-chat-app.json';
 import aiCodeBridgeOptions from '@config/json/support-ai-code-app.json';
 import { v4 as uuidv4 } from 'uuid';
-import { writeFileContentAsJson } from "@/utils/fileEvents";
+import {
+  writeFileContentAsJson,
+  createDirectory,
+  readFileContentAsJson,
+  getFilePath,
+} from "@/utils/fileEvents";
 import { FeishuChatApp } from '@/chatApp/feishu';
 import { WecomChatApp } from '@/chatApp/wecom';
+import { LarkChatApp } from '@/chatApp/lark';
 import { CursorAiCode } from '@/aiCode/cursor';
 import { eventBusListener } from '@/eventBus';
 
@@ -24,7 +28,8 @@ const reset = async () => {
   const aiCodeBridge = await selectAction(aiCodeBridgeOptions, 'label');
   merge(userLocalChatCodeBridgeConfig, [{ aiCodeBridge: aiCodeBridge.key }]);
 
-  const userLocalProjectConfigList = [{ key: 'chat-code-bridge', title: 'chat-code-bridge', workspace: process.cwd() }];
+  const defaultWorkspace = createDirectory('default-workspace');
+  const userLocalProjectConfigList = [{ key: 'default-workspace', title: 'default-workspace', workspace: defaultWorkspace }];
   const project = await selectAction(userLocalProjectConfigList, 'title');
   merge(userLocalChatCodeBridgeConfig, [{ currentProject: project }]);
 
@@ -46,6 +51,9 @@ const itemStart = async (option: ChatCodeBridgeOption) => {
   switch (appBridge) {
     case 'feishu':
       chatAppInstance = new FeishuChatApp(option) as unknown as ChatAppInterface;
+      break;
+    case 'lark':
+      chatAppInstance = new LarkChatApp(option) as unknown as ChatAppInterface;
       break;
     case 'wecom':
       chatAppInstance = new WecomChatApp(option) as unknown as ChatAppInterface;

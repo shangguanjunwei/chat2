@@ -18,7 +18,7 @@
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
-    "ab": "dist/cli.js"
+    "chat-code-bridge": "dist/cli.js"
   },
   "files": [
     "dist",
