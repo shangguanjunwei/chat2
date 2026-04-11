@@ -8,6 +8,8 @@ import { createCardEntity } from './utils/CardEvents';
 import eventBus from '@/eventBus';
 import { addLog } from '@/utils/log';
 import { getStreamingCardJson } from './utils/formatMessage';
+
+/** Lark 国际版 ChatApp：逻辑与飞书国内版类似，SDK 默认域名不同。 */
 export class LarkChatApp extends ChatApp {
   client: Lark.Client | null = null;
   wsClient: Lark.WSClient | null = null;
@@ -18,6 +20,7 @@ export class LarkChatApp extends ChatApp {
     this.option = option;
     this.init(option);
   }
+  /** 初始化 Client 与 WSClient，注册消息与进入单聊事件。 */
   init(data: ChatCodeBridgeOption): void {
     const { appBotOption } = data;
     this.client = new Lark.Client({
@@ -66,6 +69,7 @@ export class LarkChatApp extends ChatApp {
       }),
     });
   }
+  /** 用户当日首次进入单聊时发送欢迎卡片（按消息时间做简单去重）。 */
   sendWelcomeMessage(data: any) {
     const { last_message_create_time, chat_id } = data;
     if (dayjs().startOf('day').isBefore(dayjs(Number(last_message_create_time)))) return;
@@ -81,6 +85,7 @@ export class LarkChatApp extends ChatApp {
       }
     });
   }
+  /** 更新流式卡片中指定元素的正文内容（按 sequence 排序）。 */
   async sendStreamMessage(data: AiCode2ChatAppResponseContent) {
     await this.client!.cardkit.v1.cardElement.content({
       path: {
@@ -93,6 +98,7 @@ export class LarkChatApp extends ChatApp {
       },
     })
   }
+  /** 以富文本 post 形式回复一条 markdown（非流式卡片场景）。 */
   sendMessage(data: AiCode2ChatAppResponseContent) {
     this.client!.im.v1.message.reply({
       path: { message_id: data.option.message_id },
@@ -104,6 +110,7 @@ export class LarkChatApp extends ChatApp {
       },
     });
   }
+  /** 单聊全收；群聊仅当消息 @ 到本机器人时处理。 */
   messageIsToThisBot(data: any) {
     const { chat_type, mentions = [] } = data.message;
     if (chat_type === 'p2p') return true;
@@ -112,6 +119,7 @@ export class LarkChatApp extends ChatApp {
     }
     return false;
   }
+  /** 思考中表情 + 创建卡片实体 + 会话内发出交互式卡片，返回后续流式更新所需的 ids。 */
   async sendPrefixMessage(data: AiCode2ChatAppResponseContent) {
     const result_1 = await this.client!.im.v1.messageReaction.create({
       path: { message_id: data.option.message_id },
@@ -139,6 +147,7 @@ export class LarkChatApp extends ChatApp {
       }
     }
   }
+  /** 流式结束：最终更新卡片、写日志、移除思考表情并打上完成类表情。 */
   async sendSuffixMessage(data: AiCode2ChatAppResponseContent) {
     await this.client!.cardkit.v1.card.update({
       data: {

@@ -5,7 +5,9 @@ import { writeFileContentAsJson, readFileContentAsJson } from '@/utils/fileEvent
 import { getFilePath } from '@/utils/fileEvents';
 import { throttle } from 'lodash-es';
 
+/** 全局事件总线（mitt），用于 ChatApp 与 AiCode 之间的松耦合通信。 */
 const eventBus: Emitter<any> = mitt();
+/** 会话「换班」策略对应的时间跨度（毫秒），与 `currentChatSessionChangeRate` 对齐。 */
 const timeDurationEnum = {
   day: 7 * 24 * 60 * 60 * 1000,
   week: 7 * 24 * 60 * 60 * 1000,
@@ -13,6 +15,13 @@ const timeDurationEnum = {
   year: 365 * 24 * 60 * 60 * 1000,
 }
 
+/**
+ * 为单个 bridge 配置注册事件：收到 IM 消息后串联「前缀 → AI 流式 → 后缀」，并按策略刷新会话。
+ *
+ * @param option 当前 bot 的配置（含 uuid、会话策略等）
+ * @param aiCodeInstance 已构造的 AI 适配实例
+ * @param chatAppInstance 已构造的 IM 适配实例
+ */
 export const eventBusListener = (
   option: ChatCodeBridgeOption,
   aiCodeInstance: AiCodeInterface,
@@ -27,6 +36,7 @@ export const eventBusListener = (
         status: 'thinking',
       },
     });
+    /** 在会话已就绪或无需新建会话时执行：节流推送流式片段，完成时收尾并调用后缀逻辑。 */
     const callback = async () => {
       let sequence = 1;
       const throttledStream = throttle(

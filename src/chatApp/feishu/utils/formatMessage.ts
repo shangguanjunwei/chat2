@@ -1,3 +1,6 @@
+/**
+ * 将飞书 `im.message.receive_v1` 的 payload 转为统一结构；群聊会去掉 @ 占位符再取纯文本。
+ */
 export const getFormattedData = (data: any) => {
   const { chat_type, chat_id, message_id, mentions = [] } = data.message;
   const content = JSON.parse(data.message.content);
@@ -24,7 +27,11 @@ export const getFormattedData = (data: any) => {
   return null;
 };
 
-// 流式卡片消息
+/**
+ * 根据当前流式状态生成飞书卡片 JSON 2.0 字符串（含 streaming 配置与 markdown 正文）。
+ *
+ * @param data AI 侧推送的片段与状态
+ */
 export const getStreamingCardJson = (data: StreamPrintFnParams) => {
   return JSON.stringify({
     "schema": "2.0", // 卡片 JSON 结构的版本。默认为 1.0。要使用 JSON 2.0 结构，必须显示声明 2.0。

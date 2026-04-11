@@ -11,6 +11,9 @@ const systemPrompt = ``;
 // 你总是以用户的角度思考问题，并给出最简洁、最直接的答案。
 // 内容中最多支持放置4个表格组件，表格组件需要使用markdown语法。
 
+/**
+ * Cursor `agent` CLI 适配：在当前工程 workspace 下创建/恢复会话，并以 stream-json 消费输出。
+ */
 export class CursorAiCode extends AiCode {
   option: ChatCodeBridgeOption;
 
@@ -18,6 +21,7 @@ export class CursorAiCode extends AiCode {
     super();
     this.option = option;
   }
+  /** 调用 `agent create-chat`，将返回的会话 id 写入 `option.currentChatSession`。 */
   createChat(): Promise<string> {
     return new Promise((resolve, reject) => {
       const child = spawn(
@@ -46,6 +50,9 @@ export class CursorAiCode extends AiCode {
       });
     });
   }
+  /**
+   * 以流式方式执行 `agent`，解析 stream-json 行并驱动 `printFn`（thinking / processing / completed）。
+   */
   chatByStream(
     prompt: string,
     printFn: (obj: StreamPrintFnParams) => Promise<void>
@@ -134,6 +141,7 @@ export class CursorAiCode extends AiCode {
       });
     });
   }
+  /** 非流式：使用 `agent` 的 text 输出格式执行单次提示（当前实现仅解析退出码）。 */
   chatByText(prompt: string): Promise<any> {
     return new Promise((resolve, reject) => {
       const child = spawn(

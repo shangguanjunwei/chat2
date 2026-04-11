@@ -10,10 +10,12 @@ import { dirname, join } from 'node:path';
 import { FilePathEnum } from '@config/ts/file-path-enum';
 import { homedir } from 'node:os';
 
+/** 当前用户主目录，用于解析 `USER_LOCAL_*` 等配置路径。 */
 export const USER_HOME_PATH = homedir();
+/** 进程当前工作目录，用于非 `USER_LOCAL_*` 的相对路径前缀。 */
 export const BASE_PATH = process.cwd();
 
-// 创建用户目录
+/** 在 `~/.chat-code-bridge/<dirname>` 下创建目录（若不存在），并返回绝对路径。 */
 export const createDirectory = (dirname: string) => {
   const dir = join(USER_HOME_PATH, '.chat-code-bridge', dirname);
   if (!existsSync(dir)) {
@@ -22,14 +24,14 @@ export const createDirectory = (dirname: string) => {
   return dir;
 };
 
-// 读取文件内容
+/** 读取文本文件；文件不存在时返回 `null`。 */
 const readFileContent = (filePath: string): string | null => {
   if (!existsSync(filePath)) return null;
   return readFileSync(filePath, 'utf8');
 
 };
 
-// 写入文件内容，如果写入的文件及目录不存在，则创建
+/** 写入文本文件；父目录不存在时递归创建。 */
 const writeFileContent = (filePath: string, content: string): void => {
   const dirPath = dirname(filePath);
   if (!existsSync(dirPath)) {
@@ -38,19 +40,19 @@ const writeFileContent = (filePath: string, content: string): void => {
   writeFileSync(filePath, content, 'utf8');
 };
 
-// 读取文件内容并解析为 JSON
+/** 读取 JSON 文件并 `JSON.parse`；文件不存在或为空时返回 `null`。 */
 export const readFileContentAsJson = (filePath: string): any => {
   const content = readFileContent(filePath);
   if (!content) return null;
   return JSON.parse(content);
 };
 
-// 写入JSON文件内容
+/** 将对象格式化为带缩进的 JSON 并写入文件（末尾补换行）。 */
 export const writeFileContentAsJson = (filePath: string, content: any): void => {
   writeFileContent(filePath, `${JSON.stringify(content || '', null, 2)}\n`);
 };
 
-// 给文件追加内容
+/** 向文件末尾追加一行内容（不存在则创建父目录）。 */
 export const appendFileContent = (filePath: string, content: string): void => {
   const dir = dirname(filePath);
   if (!existsSync(dir)) {
@@ -59,7 +61,12 @@ export const appendFileContent = (filePath: string, content: string): void => {
   appendFileSync(filePath, content + '\n', 'utf8');
 };
 
-// 按配置树在用户目录创建目录与缺省文件（已存在文件不覆盖）。
+/**
+ * 按 `TreeNode` 树在用户目录下创建子目录与 JSON 文件（已存在文件不覆盖内容逻辑由调用方保证）。
+ *
+ * @param parentAbs 父目录绝对路径
+ * @param node 当前节点（目录或文件）
+ */
 export const applyTreeNode = (parentAbs: string, node: TreeNode) => {
   const abs = join(parentAbs, node.name);
   if (node.type === 'dir') {
@@ -79,12 +86,14 @@ export const applyTreeNode = (parentAbs: string, node: TreeNode) => {
   }
 };
 
-// 删除文件
+/** 若路径存在则删除该文件。 */
 export const deleteFile = (filePath: string): void => {
   if (existsSync(filePath)) unlinkSync(filePath);
 };
 
-// 获取文件路径
+/**
+ * 将 `FilePathEnum` 键解析为绝对路径：`USER_LOCAL_*` 前缀项基于用户主目录，否则基于 `process.cwd()`。
+ */
 export const getFilePath = (key: keyof typeof FilePathEnum) => {
   const prefix = key.toString().startsWith('USER_LOCAL_') ? USER_HOME_PATH : BASE_PATH;
   return join(prefix, FilePathEnum[key]);

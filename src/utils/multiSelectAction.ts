@@ -6,9 +6,11 @@ import readline from 'node:readline';
 const squareUnchecked = '\x1b[97m\u25AA\x1b[0m';
 const squareChecked = '\x1b[32m\u25AA\x1b[0m';
 
+/** 从泛型项上读取展示用标签。 */
 const getLabel = <T>(item: T, labelKey: string) =>
   String(item[labelKey as keyof T] ?? '');
 
+/** 非 TTY：通过序号列表（逗号/空格分隔）多选。 */
 const multiSelectByNumbers = async <T>(
   options: T[],
   labelKey: string,
@@ -40,6 +42,7 @@ const multiSelectByNumbers = async <T>(
   }
 };
 
+/** TTY：↑↓ 移动焦点、Space 切换选中、Enter 确认的多选交互。 */
 const multiSelectByInteractive = <T>(
   options: T[],
   labelKey: string,
@@ -120,6 +123,12 @@ const multiSelectByInteractive = <T>(
     stdin.on('keypress', onKeypress);
   });
 
+/**
+ * 在交互式终端或纯管道环境中从列表里多选若干项。
+ *
+ * @param options 候选项数组
+ * @param labelKey 用于展示的字段名，默认 `label`
+ */
 export const multiSelectAction = async <T>(
   options: T[],
   labelKey: string = 'label',

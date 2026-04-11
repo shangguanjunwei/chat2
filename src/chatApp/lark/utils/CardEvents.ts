@@ -1,7 +1,9 @@
 import { getStreamingCardJson } from './formatMessage';
 import * as Lark from '@larksuiteoapi/node-sdk';
 
-// 创建卡片实体
+/**
+ * 调用 CardKit 创建卡片实体，返回 `card_id` 供后续发消息与流式更新引用。
+ */
 export const createCardEntity = async (client: Lark.Client, result: StreamPrintFnParams) => {
   try {
     const response = await client.cardkit.v1.card.create({

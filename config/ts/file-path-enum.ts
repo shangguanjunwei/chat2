@@ -1,3 +1,6 @@
+/**
+ * 与 `getFilePath` 配合：约定用户目录下配置文件相对路径；键名以 `USER_LOCAL_` 开头表示相对用户主目录。
+ */
 export enum FilePathEnum {
   // 用户本地文件必须以 USER_LOCAL_ 开头
   // 用户本地项目配置列表的文件地址

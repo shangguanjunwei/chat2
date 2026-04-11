@@ -1,3 +1,6 @@
+/**
+ * 全局类型声明（ambient）：供 `src` 内模块共享；不在此文件使用 `import`/`export`，避免破坏全局注入方式。
+ */
 type TreeNode = {
   type: 'dir' | 'file';
   name: string;

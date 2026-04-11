@@ -1,6 +1,13 @@
 import readlinePromises from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 
+/**
+ * 按 `options` 逐项提示用户输入（如 appId、secret），直到非空，组装为 `valueKey` → 值的映射。
+ *
+ * @param options 每项含 `labelKey`/`valueKey` 对应字段
+ * @param labelKey 展示名称字段
+ * @param valueKey 写入结果的键名字段
+ */
 export const inputAction = async (
   options: Item[],
   labelKey: string = 'label',

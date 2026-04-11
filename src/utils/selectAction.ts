@@ -2,10 +2,11 @@ import readlinePromises from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import readline from 'node:readline';
 
-
+/** 从选项对象上读取展示用标签字段。 */
 const getLabel = (item: Item, labelKey: string) =>
   String(item[labelKey] ?? '');
 
+/** 非 TTY：通过 stdin 输入序号进行单选。 */
 const selectByNumber = async (
   options: Item[],
   labelKey: string,
@@ -27,6 +28,7 @@ const selectByNumber = async (
   }
 };
 
+/** TTY：↑↓ 选择、Enter 确认的单选交互界面。 */
 const selectByInteractive = (
   options: Item[],
   labelKey: string,
@@ -94,6 +96,12 @@ const selectByInteractive = (
     stdin.on('keypress', onKeypress);
   });
 
+/**
+ * 在交互式终端或纯管道环境中从列表里选择一项。
+ *
+ * @param options 候选项数组
+ * @param labelKey 用于展示的字段名，默认 `label`
+ */
 export const selectAction = async (
   options: Item[],
   labelKey: string = 'label',

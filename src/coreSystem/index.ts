@@ -18,6 +18,7 @@ import { CursorAiCode } from '@/aiCode/cursor';
 import { eventBusListener } from '@/eventBus';
 import { multiSelectAction } from '@/utils/multiSelectAction';
 
+/** 首次向导：交互式收集 IM、AI、工程路径等并写入用户本地 JSON 配置。 */
 const reset = async () => {
   const userLocalChatCodeBridgeConfig: ChatCodeBridgeOption[] = chatCodeBridgeConfigTemplate as unknown as ChatCodeBridgeOption[];
   merge(userLocalChatCodeBridgeConfig, [{ label: 'default', currentChatSessionChangeRate: 'day', loggerLevel: 0 }]);
@@ -39,6 +40,11 @@ const reset = async () => {
   writeFileContentAsJson(getFilePath('USER_LOCAL_PROJECT_CONFIG_LIST'), userLocalProjectConfigList);
 }
 
+/**
+ * 根据配置实例化 AI 与 ChatApp，并挂上对应 `uuid` 的事件监听。
+ *
+ * @param option 单条 bridge 配置
+ */
 const itemStart = async (option: ChatCodeBridgeOption) => {
   const { appBridge, aiCodeBridge } = option;
   let aiCodeInstance: AiCodeInterface
@@ -70,6 +76,9 @@ const itemStart = async (option: ChatCodeBridgeOption) => {
   );
 }
 
+/**
+ * 启动核心流程：读取用户配置；若为空则走 `reset()`；若多条配置则多选后逐个 `itemStart`。
+ */
 export const startCoreSystem = async () => {
   let userLocalChatCodeBridgeConfig: ChatCodeBridgeOption[] = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
   if (isEmpty(userLocalChatCodeBridgeConfig)) await reset();

@@ -6,6 +6,7 @@ import { defineConfig } from 'tsup';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const pkg: PackageJson = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
 
+/** tsup 打包配置：单入口 `bin/cli.ts`，ESM，Node 22，依赖外置；发布前还会经 `obfuscate-dist` 混淆。 */
 export default defineConfig({
   entry: ['bin/cli.ts'],
   format: ['esm'],
@@ -21,6 +22,7 @@ export default defineConfig({
     js: '#!/usr/bin/env node',
   },
   external: Object.keys(pkg.dependencies ?? {}),
+  /** 为 esbuild 配置 `@`、`@config` 路径别名，与 tsconfig paths 一致。 */
   esbuildOptions(options) {
     options.alias = {
       '@': path.join(root, 'src'),
