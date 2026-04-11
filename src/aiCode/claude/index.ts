@@ -36,7 +36,10 @@ export class ClaudeAiCode extends AiCode {
           '--include-partial-messages',
           '--verbose'
         ],
-        { stdio: ['inherit', 'pipe', 'inherit'] }
+        {
+          cwd: this.option.currentProject.workspace,
+          stdio: ['inherit', 'pipe', 'inherit']
+        }
       );
       const stdout = child.stdout;
       if (!stdout) {
