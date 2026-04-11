@@ -1,7 +1,31 @@
-专有软件许可声明
+个人非商业使用许可
 
 Copyright (c) 2026 Junwei Shangguan. 保留所有权利。
 
-本软件及其相关文档（统称「软件」）为专有财产。未经版权持有人事先书面许可，任何人不得使用、复制、修改、合并、发布、分发、再许可或销售本软件的副本，亦不得将本软件用于任何目的。
+一、授予的权利
 
-本软件按「现状」提供，不提供任何明示或暗示的保证。
+在遵守下文「限制」的前提下，您作为自然人可以免费：
+
+  • 下载、安装并运行本软件及其随附文档（统称「本软件」）；
+  • 将本软件用于个人、非商业目的（例如个人学习、研究、业余项目中的自用）。
+
+二、明确禁止的行为
+
+未经版权持有人事先书面许可，您不得：
+
+  • 以营利为目的使用本软件，或在与营利活动直接相关的业务场景中使用本软件；
+  • 将本软件用于向第三方提供收费或变相收费的产品、服务或托管环境；
+  • 将本软件复制、修改、合并、发布、分发、再许可、出售或出租，用于商业推广、商业分发或任何商业目的；
+  • 以其他方式将本软件用于任何商业用途。
+
+「商业用途」包括但不限于：公司内部营利性运营、为客户或雇主提供有偿交付物、集成到收费软件或服务、作为 SaaS/内部工具向用户收费等。个人是否属于商业用途，以通常理解及权利人解释为准。
+
+三、其他
+
+  • 本软件按「现状」提供，不提供任何明示或暗示的保证（包括但不限于适销性、特定用途适用性、不侵权等）。
+  • 在法律允许的范围内，因使用或无法使用本软件而产生的任何直接或间接损失，版权持有人不承担责任。
+  • 未在本许可中明确授予的权利，均由版权持有人保留。
+
+四、English summary (non-binding convenience translation)
+
+You may install and use this software free of charge for personal, non-commercial purposes only. Any commercial use, redistribution for commercial purposes, or incorporation into paid products or services is prohibited without prior written permission from the copyright holder. The software is provided “as is”, without warranty.

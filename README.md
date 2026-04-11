@@ -1,152 +1,160 @@
 # @amoayun/chat-code-bridge
 
-在飞书（Lark）或企业微信里收发消息，并把对话桥接到本机的 **Cursor Agent CLI**（`agent`），用聊天驱动本地开发工作流。
+**官网**：[https://www.commontalk.cn](https://www.commontalk.cn)
+
+在**飞书 / Lark / 企业微信**中收发消息，并将会话对接到本机 **Cursor Agent CLI**（`agent`），用 IM 驱动本地开发工作流。
+
+【⚠️】**1.0.1** 与 **1.0.2** 配置不兼容；升级至 1.0.2 前请删除用户主目录下的 `~/.chat-code-bridge` 后再启动。详见下文 [7. 版本记录](#7-版本记录)。
+
+## 目录
+
+- [1. 环境要求](#1-环境要求)
+- [2. 安装](#2-安装)
+- [3. 命令说明](#3-命令说明)
+- [4. 项目配置文件（自动生成，无需处理）](#4-项目配置文件自动生成无需处理)
+- [5. 渠道配置字段](#5-渠道配置字段)
+  - 5.1 飞书 / Lark（国际版）
+  - 5.2 企业微信
+- [6. 拓展](#6-拓展)
+  - 6.1 飞书
+  - 6.2 企业微信
+- [7. 版本记录](#7-版本记录)
+- [8. 许可证](#8-许可证)
 
 ## 1. 环境要求
 
-> - **Node.js**：版本 `>= 22`（与 `package.json` 中 `engines` 一致）。安装与说明见 [Node.js 下载与安装](https://nodejs.org/en/download)、[官方入门文档](https://nodejs.org/en/learn/getting-started/introduction-to-nodejs)。
-> - **Cursor Agent CLI**：终端中可执行命令 `agent`（本工具会调用 `agent create-chat`、`agent -p ...` 等）。安装与说明见 [Cursor CLI 安装文档](https://cursor.com/docs/cli/installation)。
-> - **IM 侧（飞书 / Lark / 企业微信）**：已在对应平台创建机器人或自建应用，并准备好 **App ID / Secret** 等凭证（字段说明见第 5 节）。各平台可参考：  
->   - 飞书： [创建应用（5 分钟上手）](https://open.feishu.cn/document/home/develop-a-bot-in-5-minutes/create-an-app)、[机器人开发快速入门](https://open.feishu.cn/document/develop-robots/quick-start)  
->   - 企业微信： [智能机器人教程](https://developer.work.weixin.qq.com/tutorial/robot)、[开始开发](https://developer.work.weixin.qq.com/document/path/96713)
+>
+> | 依赖                   | 说明                                                                                                                                                                                                                                                                                                              |
+> | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | **Node.js**          | `>= 22`                                                                                                                                                                                                                                                                                                         |
+> | **Cursor Agent CLI** | 终端可执行 `agent`，见 [Cursor CLI 安装](https://cursor.com/docs/cli/installation)                                                                                                                                                                                                                                       |
+> | **IM 开放平台机器人**       | 已创建应用/机器人 - 飞书：[创建应用](https://open.feishu.cn/document/home/develop-a-bot-in-5-minutes/create-an-app)、[机器人快速入门](https://open.feishu.cn/document/develop-robots/quick-start)｜企业微信：[智能机器人教程](https://developer.work.weixin.qq.com/tutorial/robot)、[开始开发](https://developer.work.weixin.qq.com/document/path/96713) |
+>
 
 ## 2. 安装
 
-> 当前仅支持**全局安装**（不推荐作为项目依赖安装到 `node_modules`）。
+> 推荐**全局安装**（CLI 工具，通过 `bin` 暴露 `chat-code-bridge` 命令）：
 >
 > ```bash
 > npm install -g @amoayun/chat-code-bridge
 > ```
 >
-> 全局安装后，在终端执行：
+> 也可使用 `npx`（无需全局安装，每次拉取最新版本执行）：
 >
 > ```bash
-> chat-code-bridge
+> npx @amoayun/chat-code-bridge
 > ```
 
-## 3. 使用方法
-
-> 1. 在终端执行全局命令 `chat-code-bridge`。
-> 2. **首次运行**若用户目录下还没有配置文件，会进入交互式向导，依次选择：
->   - **聊天应用**：飞书、Lark（国际版）或企业微信；
->   - **机器人凭证**：按提示填写（字段名见第 5 节）；
->   - **AI 代码桥**：当前支持 **Cursor**；
->   - **当前项目**：向导会列出本地项目配置，首次一般为当前工作区对应的项。
-> 3. 配置写入完成后，进程会保持运行，通过 IM 与 `agent` 建立会话并处理消息。
->
-> 之后再次启动时，会读取已有配置并直接拉起桥接，无需重复填写（除非删除配置文件）。
-
-## 4. 配置文件位置
-
-> 配置保存在**用户主目录**下（与当前在哪个文件夹执行命令无关，⚠️修改完配置文件后需要重新启动）：
->
->
-> | 文件                                             | 说明                                                                                        |
-> | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-> | `~/.chat-code-bridge/chat-code-bridge.json`    | 桥接主配置（渠道、凭证、当前项目、`uuid` 等）。**类型：`ChatCodeBridgeOption[]`**（数组元素为 `ChatCodeBridgeOption`）。 |
-> | `~/.chat-code-bridge/project-config-list.json` | 本地可选项目列表。**类型：`ProjectItem[]`**（数组元素为 `ProjectItem`）。                                     |
->
-
-```ts
-type Item = Record<string, unknown>;
-
-type ProjectItem = {
-  key: string;
-  title: string;
-  workspace: string;
-} & Item;
-
-interface ChatCodeBridgeOption {
-  uuid: string;
-  appBridge: string;
-  aiCodeBridge: string;
-  currentProject: ProjectItem;
-  appBotOption: Item;
-  currentChatSession: string;
-  currentChatSessionCreatedAt?: number;
-}
-```
-
-> 如需**完全重新向导配置**，可备份后删除 `chat-code-bridge.json`（或清空其内容），下次启动会再次进入初始化流程。
-
-## 5. 各渠道需填写的配置
-
-> ### 飞书 / Lark（国际版）
->
-> - **appId**：应用 App ID  
-> - **appSecret**：应用 Secret  
-> - **domain**：开放平台 API 根地址，例如飞书 `https://open.feishu.cn`、Lark 国际版 `https://open.larksuite.com`
->
-> 飞书开放平台首页：[https://open.feishu.cn](https://open.feishu.cn)  
->
-> ### 企业微信
->
-> - **botId**：机器人 ID  
-> - **secret**：机器人 Secret
->
-> 此外，还请在各开放平台控制台为机器人开启**即时消息**等相关权限，并完成与本机长连接/Webhook 要求相符的应用配置（以各平台文档为准）。
-
-## 6. Cursor 与本地工作区
-
-> 桥接会为当前选中的 `**currentProject.workspace`** 目录调用 `agent`，请确保：
->
-> - 该目录即你希望 Agent 操作的真实项目根目录；
-> - 本机已正确安装 Cursor Agent CLI，`agent` 在 `PATH` 中可用。
-
-## 7. 拓展（可选）
-
-以下能力与本桥接工具**相互独立**，可按需选用。
-
-【⚠️】企微机器人可以控制飞书cli来操作飞书，飞书机器人也可以控制企微cli 进行操作企微，不受平台限制！！
-
-如果你的cursor 的 permissions 配置了 Shell 权限，下面的事可以直接语音转文字，发给机器人让机器人安装！
-
-### 1. 飞书能力
-
-在终端中直接使用飞书开放平台能力：安装官方 **Lark / 飞书 CLI**，再安装配套的 **AI Agent Skills**，便于在命令行或 AI 助手中编排日历、文档、消息等场景。总览见 [https://feishu-cli.com/zh/](https://feishu-cli.com/zh/)。
-
-```bash
-# 飞书 CLI（Lark CLI）：全局安装 @larksuite/cli，命令名为 lark-cli
-npm install -g @larksuite/cli
-
-# 飞书的 CLI Skill：为 Cursor、Claude Code 等安装配套 Skill；安装后建议重启 AI 开发工具
-npx skills add larksuite/cli -y -g
-
-# 文档与源码
-# Skill 参考：https://feishu-cli.com/zh/feishu-cli-ai-agent-skills.html
-# 仓库：https://github.com/larksuite/cli
-```
-
-### 2. 企业微信能力
-
-在终端中直接使用企业微信开放平台能力：安装官方 **WeCom / 企业微信 CLI**，再安装配套的 **AI Agent Skills**，便于在命令行或 AI 助手中编排日历、文档、消息等场景。总览见 [https://open.work.weixin.qq.com/help2/pc/21676](https://open.work.weixin.qq.com/help2/pc/21676)。（企业微信CLI目前优先对≤10人企业开放使用）
-
-```bash
-# 企业微信 CLI（WeCom CLI）：全局安装 @wecom/cli，命令名为 wecom-cli
-npm install -g @wecom/cli
-
-# 企业微信的 CLI Skill：为 Cursor、Claude Code 等安装配套 Skill；安装后建议重启 AI 开发工具
-npx skills add WeComTeam/wecom-cli -y -g
-
-# 文档与源码
-# Skill 参考：https://open.work.weixin.qq.com/help2/pc/21676
-```
-
-### 3.更多能力等你探索...
-
-## 8. 版本说明
+## 3. 命令说明
 
 >
-> | 当前版本      | 发布日期           | 说明                                                                                                                                           |
-> | --------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-> | **1.0.0** | **2026-04-10** | 将 **飞书 / Lark / 企业微信** 即时消息与本地 **Cursor Agent CLI**（`agent`）对接：支持首次启动向导配置机器人凭证与本地工作区；长连接接收会话消息并驱动 `agent` 流式对话，把 IM 中的提问转为对指定代码仓库的 Agent 任务。 |
+> | 命令                                            | 作用                                |
+> | --------------------------------------------- | --------------------------------- |
+> | `chat-code-bridge` 或 `chat-code-bridge start` | 交互选择配置后，在**后台**启动服务               |
+> | `chat-code-bridge stop`                       | 停止后台服务（根据 PID 文件向进程请求正常退出）        |
+> | `chat-code-bridge reload`                     | 若已有实例则先停止并等待退出，再重新走启动流程（适合改配置后重启） |
+> | `chat-code-bridge -h` / `--help`              | 显示帮助                              |
 >
 
-## 9. 开发提交规范
+## 4. 项目配置文件（自动生成，无需处理）
 
-> 参与本仓库开发时，请遵循 [CONTRIBUTING.md](./CONTRIBUTING.md) 中的 **Conventional Commits** 约定；提交说明会在本地经 **commitlint** 校验。
+> 路径均相对于 `**~`**（用户主目录），与当前 shell 的工作目录无关。
+>
+> 【⚠️】如果要配置多对多，需要用户在这里修改配置文件
+>
+>
+> | 路径                                          | 说明                                                                                                                                                                                                              |
+> | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | `~/.chat-code-bridge/chat-code-bridge.json` | 主配置，类型为 `ChatCodeBridgeOption[]`                                                                                                                                                                                |
+> | `~/.chat-code-bridge/default-workspace/`    | **默认工作区目录**：首次向导时在用户目录下自动创建（路径为 `~/.chat-code-bridge/default-workspace`）。`project-config-list.json` 中默认条目 `default-workspace` 的 `workspace` 指向该目录绝对路径；主配置 `currentProject` 选中该项时，`agent` 在此目录下工作，可在配置中改为真实项目路径。 |
+> | `~/.chat-code-bridge/log/`                  | 日志目录                                                                                                                                                                                                            |
+>
+>
+> 日志可按需删除 `log` 下较早的内容以节省磁盘空间。
+>
+> 类型参考（与实现字段以仓库内类型为准）：
+>
+> ```ts
+> type Item = Record<string, any>;
+>
+> type ProjectItem = {
+>   key: string;
+>   title: string;
+>   workspace: string;
+> } & Item;
+>
+> interface ChatCodeBridgeOption {
+>   uuid: string; // 唯一id
+>   label: string; // 配置名
+>   appBridge: string; // chatApp
+>   aiCodeBridge: string; // vibe coding
+>   currentProject: ProjectItem; // workspace
+>   appBotOption: Item; // 机器人配置
+>   loggerLevel: Lark.LoggerLevel; // 日志级别 数字 0:fatal 1:error 2:warn 3:info 4:debug 5:trace
+>   currentChatSession: string; // 会话 sessionid
+>   currentChatSessionCreatedAt: number; // 会话创建时间
+>   currentChatSessionChangeRate: 'day' | 'week' | 'month' | 'year' | 'never'; // 多久新建一个会话 默认 day
+> }
+> ```
 
-## 10. 许可证
+## 5. 渠道配置字段
 
-> 专有软件，保留所有权利。详见 [LICENSE.txt](./LICENSE.txt)。
+> ### 5.1 飞书 / Lark（国际版）
+>
+> > - **appId**：应用 App ID  
+> > - **appSecret**：应用 Secret
+> >
+> > 飞书开放平台：[https://open.feishu.cn](https://open.feishu.cn)
+>
+> ### 5.2 企业微信
+>
+> > - **botId**：机器人 ID  
+> > - **secret**：机器人 Secret
+> >
+> > 请在各平台控制台为应用开启**即时消息**等所需权限，并完成长连接 / 回调等与文档一致的配置。
+
+## 6. 拓展
+
+> 以下能力与**本工具相互独立**，可按需在终端扩展日历、文档、消息等场景。
+>
+> 说明：企微侧可通过自动化调用飞书 CLI，飞书侧也可调用企微 CLI，**IM 平台与 CLI 工具可以交叉组合**，不受「机器人在哪个 App」单一绑定限制（具体以各平台开放能力与你的部署为准）。
+>
+> ### 6.1 飞书
+>
+> > 总览：[feishu-cli.com](https://feishu-cli.com/zh/)
+> >
+> > ```bash
+> > npm install -g @larksuite/cli
+> > npx skills add larksuite/cli -y -g
+> > ```
+> >
+> > - Skill 说明：[https://feishu-cli.com/zh/feishu-cli-ai-agent-skills.html](https://feishu-cli.com/zh/feishu-cli-ai-agent-skills.html)  
+> > - 仓库：[https://github.com/larksuite/cli](https://github.com/larksuite/cli)
+>
+> ### 6.2 企业微信
+>
+> > 说明与准入见：[企业微信帮助中心相关说明](https://open.work.weixin.qq.com/help2/pc/21676)（CLI 能力可能对组织规模有要求，以官方为准）。
+> >
+> > ```bash
+> > npm install -g @wecom/cli
+> > npx skills add WeComTeam/wecom-cli -y -g
+> > ```
+> >
+> > 若已在 Cursor 中为 Agent 开启 **Shell** 等权限，也可通过 IM 把上述安装步骤交给 Agent 执行（请注意环境与安全策略）。
+
+## 7. 版本记录
+
+> **版本兼容性（1.0.1 → 1.0.2）**  
+> **1.0.1** 与 **1.0.2** 的本地配置格式与约定不兼容。从 1.0.1 升级到 1.0.2 时，请先**停止**正在运行的服务，再删除用户主目录下的 `**~/.chat-code-bridge`** 整个目录（或至少移走其中配置后再启动），然后重新安装/运行 1.0.2 并按向导完成配置。未清理旧目录直接启动 1.0.2 可能导致异常。
+>
+>
+> | 版本        | 发布日期       | 说明                                                            |
+> | --------- | ---------- | ------------------------------------------------------------- |
+> | **1.0.2** | 2026-04-12 | 解决了一些已知问题；**与 1.0.1 本地配置不兼容**，升级须按上文清理 `~/.chat-code-bridge`。 |
+> | **1.0.1** | 2026-04-10 | 第一版工具试试水                                                      |
+>
+
+## 8. 许可证
+
+> **个人可免费使用；禁止商业用途。** 权利保留、免责等完整条款见 [LICENSE.txt](./LICENSE.txt)。
 
