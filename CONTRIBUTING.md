@@ -47,6 +47,20 @@ fix(bridge): 修复长连接断开后未自动重连
 chore(deps): 将 TypeScript 升级到 6.x
 ```
 
+## 路径与文件名大小写
+
+本仓库要求 **Git 区分文件与目录名的大小写**（避免 `Foo.ts` 与 `foo.ts` 被当成同一路径）。
+
+克隆或新建本地仓库后，在本仓库根目录执行一次（仅作用于当前仓库）：
+
+```bash
+git config core.ignorecase false
+```
+
+可用 `git config --get core.ignorecase` 确认，期望输出为 `false`。
+
+说明：在 macOS 默认**大小写不敏感**磁盘上，仍可能出现系统层限制；若需严格区分同名不同大小写文件，建议使用大小写敏感卷或 Linux 环境。
+
 ## 本地校验（提交时自动执行）
 
 安装依赖后，**Husky** 会在 `commit-msg` 阶段运行 **commitlint**。不符合格式的提交会被拒绝。
