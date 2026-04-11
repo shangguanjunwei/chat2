@@ -69,6 +69,7 @@ interface ChatCodeBridgeOption {
   aiCodeBridge: string;
   currentProject: ProjectItem;
   appBotOption: Item;
+  loggerLevel: Lark.LoggerLevel;
   currentChatSession: string;
   currentChatSessionCreatedAt: number;
   currentChatSessionChangeRate: 'day' | 'week' | 'month' | 'year' | 'never';

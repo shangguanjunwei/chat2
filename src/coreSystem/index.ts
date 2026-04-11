@@ -20,7 +20,7 @@ import { multiSelectAction } from '@/utils/multiSelectAction';
 
 const reset = async () => {
   const userLocalChatCodeBridgeConfig: ChatCodeBridgeOption[] = chatCodeBridgeConfigTemplate as unknown as ChatCodeBridgeOption[];
-  merge(userLocalChatCodeBridgeConfig, [{ label: 'default', currentChatSessionChangeRate: 'day' }]);
+  merge(userLocalChatCodeBridgeConfig, [{ label: 'default', currentChatSessionChangeRate: 'day', loggerLevel: 0 }]);
 
   const chatApp: ChatAppItemConfig = await selectAction(chatAppOptions, 'label');
   merge(userLocalChatCodeBridgeConfig, [{ uuid: uuidv4(), appBridge: chatApp.key }]);

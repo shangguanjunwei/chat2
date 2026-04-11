@@ -10,6 +10,7 @@
       "workspace": ""
     },
     "appBotOption": {},
+    "loggerLevel": 3,
     "currentChatSession": "",
     "currentChatSessionCreatedAt": 0,
     "currentChatSessionChangeRate": ""

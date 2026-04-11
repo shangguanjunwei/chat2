@@ -10,10 +10,6 @@
       {
         "key": "appSecret",
         "label": "App Secret"
-      },
-      {
-        "key": "domain",
-        "label": "Domain（飞书示例 https://open.feishu.cn）"
       }
     ]
   },
@@ -28,10 +24,6 @@
       {
         "key": "appSecret",
         "label": "App Secret"
-      },
-      {
-        "key": "domain",
-        "label": "Domain（国际版示例 https://open.larksuite.com）"
       }
     ]
   },

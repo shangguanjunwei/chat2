@@ -9,9 +9,9 @@ import eventBus from '@/eventBus';
 import { addLog } from '@/utils/log';
 import { getStreamingCardJson } from './utils/formatMessage';
 import { aiCodeStatusTemplate } from '@config/json/chat-code-bridge.base.config.json';
+import { logHandle } from './utils/logHandle';
 export class FeishuChatApp extends ChatApp {
   client: Lark.Client | null = null;
-  wsClient: Lark.WSClient | null = null;
   option: ChatCodeBridgeOption;
 
   constructor(option: ChatCodeBridgeOption) {
@@ -25,28 +25,35 @@ export class FeishuChatApp extends ChatApp {
       ...appBotOption as any,
       disableTokenCache: false,
       appType: Lark.AppType.SelfBuild,
+      domain: Lark.Domain.Feishu,
+      loggerLevel: this.option.loggerLevel,
+      logger: logHandle(this.option.appBotOption.appId as string),
     });
-    this.wsClient = new Lark.WSClient({
+    const eventDispatcher = new Lark.EventDispatcher({
+      loggerLevel: this.option.loggerLevel,
+      logger: logHandle(this.option.appBotOption.appId as string),
+    }).register({
+      'im.message.receive_v1': async (data) => {
+        if (!this.messageIsToThisBot(data)) return;
+        const options = getFormattedData(data);
+        if (!options?.content?.text) return;
+        addLog(this.option.appBotOption.appId as string, `Q：${options.content.text}`);
+        eventBus.emit(`${this.option.uuid}:messageBridge`, {
+          text: options.content.text,
+          chat_id: data.message.chat_id,
+          message_id: data.message.message_id,
+        });
+      },
+      'im.chat.access_event.bot_p2p_chat_entered_v1': async (data) => {
+        this.sendWelcomeMessage(data);
+      },
+    })
+    new Lark.WSClient({
       ...appBotOption as any,
-    });
-    this.wsClient.start({
-      eventDispatcher: new Lark.EventDispatcher({}).register({
-        'im.message.receive_v1': async (data) => {
-          if (!this.messageIsToThisBot(data)) return;
-          const options = getFormattedData(data);
-          if (!options?.content?.text) return;
-          addLog(this.option.appBotOption.appId as string, `Q：${options.content.text}`);
-          eventBus.emit(`${this.option.uuid}:messageBridge`, {
-            text: options.content.text,
-            chat_id: data.message.chat_id,
-            message_id: data.message.message_id,
-          });
-        },
-        'im.chat.access_event.bot_p2p_chat_entered_v1': async (data) => {
-          this.sendWelcomeMessage(data);
-        },
-      }),
-    });
+      domain: Lark.Domain.Feishu,
+      loggerLevel: this.option.loggerLevel,
+      logger: logHandle(this.option.appBotOption.appId as string),
+    }).start({ eventDispatcher });
   }
   sendWelcomeMessage(data: any) {
     const { last_message_create_time, chat_id } = data;

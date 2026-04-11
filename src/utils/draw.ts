@@ -69,7 +69,10 @@ export type DrawLogoColor = keyof typeof NAMED_COLORS | (string & {});
 export function drawLogo(color: DrawLogoColor = 'yellow'): void {
   const open = resolveAnsiForeground(color);
   const bar = '─'.repeat(INNER_WIDTH + 2);
+  process.stdout.write('\x1b[2J\x1b[0f');
   const lines = [
+    '',
+    '',
     `  ┌${bar}┐`,
     boxRow(pkg.name, `v${pkg.version}`),
     boxRow('author:', pkg.author),
@@ -78,6 +81,8 @@ export function drawLogo(color: DrawLogoColor = 'yellow'): void {
     boxRow('└ @amoayun/monaco-editor-vue3', ''),
     boxRow('└ ...', ''),
     `  └${bar}┘`,
+    '',
+    '',
   ];
 
   for (const item of lines) {
