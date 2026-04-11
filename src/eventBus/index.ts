@@ -6,13 +6,19 @@ import { getFilePath } from '@/utils/fileEvents';
 import { throttle } from 'lodash-es';
 
 const eventBus: Emitter<any> = mitt();
+const timeDurationEnum = {
+  day: 7 * 24 * 60 * 60 * 1000,
+  week: 7 * 24 * 60 * 60 * 1000,
+  month: 30 * 24 * 60 * 60 * 1000,
+  year: 365 * 24 * 60 * 60 * 1000,
+}
 
 export const eventBusListener = (
   option: ChatCodeBridgeOption,
   aiCodeInstance: AiCodeInterface,
   chatAppInstance: ChatAppInterface
 ) => {
-  const { uuid, currentChatSessionCreatedAt } = option;
+  const { uuid, currentChatSessionCreatedAt, currentChatSessionChangeRate } = option;
   eventBus.on(`${uuid}:messageBridge`, async (msgContent: ChatApp2AiCodeMessageContent) => {
     const prefixResult = await chatAppInstance.sendPrefixMessage({
       option: msgContent,
@@ -60,11 +66,21 @@ export const eventBusListener = (
       };
       await aiCodeInstance.chatByStream(msgContent.text, fn);
     };
-    if (!currentChatSessionCreatedAt || dayjs().isAfter(dayjs(currentChatSessionCreatedAt).endOf('day'))) {
+    if (!currentChatSessionCreatedAt) {
       const sessionId = await aiCodeInstance.createChat();
       eventBus.emit(`${uuid}:setCurrentChatSession`, { sessionId, callback });
     } else {
-      await callback();
+      if (currentChatSessionChangeRate !== 'never') {
+        const timeDuration = timeDurationEnum[currentChatSessionChangeRate];
+        if (dayjs().diff(dayjs(currentChatSessionCreatedAt).startOf('day'), 'millisecond') > timeDuration) {
+          const sessionId = await aiCodeInstance.createChat();
+          eventBus.emit(`${uuid}:setCurrentChatSession`, { sessionId, callback });
+        } else {
+          await callback();
+        }
+      } else {
+        await callback();
+      }
     }
   });
 

@@ -28,6 +28,8 @@ export class CursorAiCode extends AiCode {
       needConfigKeys: [],
     },
     currentChatSession: '',
+    currentChatSessionCreatedAt: 0,
+    currentChatSessionChangeRate: 'day',
   }
 
   constructor(option: ChatCodeBridgeOption) {

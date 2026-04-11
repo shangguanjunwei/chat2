@@ -15,7 +15,7 @@ export const BASE_PATH = process.cwd();
 
 // 创建用户目录
 export const createDirectory = (dirname: string) => {
-  const dir = join(USER_HOME_PATH, dirname);
+  const dir = join(USER_HOME_PATH, '.chat-code-bridge', dirname);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }

@@ -70,7 +70,8 @@ interface ChatCodeBridgeOption {
   currentProject: ProjectItem;
   appBotOption: Item;
   currentChatSession: string;
-  currentChatSessionCreatedAt?: number;
+  currentChatSessionCreatedAt: number;
+  currentChatSessionChangeRate: 'day' | 'week' | 'month' | 'year' | 'never';
 }
 
 interface StreamPrintFnParams {
