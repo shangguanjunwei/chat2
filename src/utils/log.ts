@@ -8,11 +8,11 @@ export const addLog = (appId: string, content: string) => {
   if (typeof content !== 'string') {
     message = JSON.stringify(content);
   } else {
-    message = content.trim();
+    message = content.trim().replace(/\n+/g, '\n').replace(/\t+/g, '\t');
   }
   const dir = join(USER_HOME_PATH, '.chat-code-bridge', 'log', dayjs().format('YYYY-MM-DD'));
   const filePath = join(dir, `${appId}.log`);
-  const line = `**${dayjs().format('HH:mm:ss.SSS')}** ${message}`;
+  const line = `**[${dayjs().format('HH:mm:ss.SSS')}]** ${message}`;
   mkdirSync(dir, { recursive: true });
   appendFileContent(filePath, line);
 };
