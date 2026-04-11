@@ -1,5 +1,5 @@
 /**
- * 将飞书/Lark `im.message.receive_v1` 的 payload 转为统一结构；群聊会去掉 @ 占位符再取纯文本。
+ * 将飞书 `im.message.receive_v1` 的 payload 转为统一结构；群聊会去掉 @ 占位符再取纯文本。
  */
 export const getFormattedData = (data: any) => {
   const { chat_type, chat_id, message_id, mentions = [] } = data.message;

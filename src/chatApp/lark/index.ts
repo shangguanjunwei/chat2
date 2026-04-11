@@ -8,11 +8,12 @@ import { createCardEntity } from './utils/CardEvents';
 import eventBus from '@/eventBus';
 import { addLog } from '@/utils/log';
 import { getStreamingCardJson } from './utils/formatMessage';
+import { aiCodeStatusTemplate } from '@config/json/chat-code-bridge.base.config.json';
+import { logHandle } from './utils/logHandle';
 
-/** Lark 国际版 ChatApp：逻辑与飞书国内版类似，SDK 默认域名不同。 */
+/** 飞书（国内域名）ChatApp：长连接收消息，CardKit 流式卡片与表情反馈。 */
 export class LarkChatApp extends ChatApp {
   client: Lark.Client | null = null;
-  wsClient: Lark.WSClient | null = null;
   option: ChatCodeBridgeOption;
 
   constructor(option: ChatCodeBridgeOption) {
@@ -20,54 +21,54 @@ export class LarkChatApp extends ChatApp {
     this.option = option;
     this.init(option);
   }
-  /** 初始化 Client 与 WSClient，注册消息与进入单聊事件。 */
+  /** 初始化 HTTP Client、带事件分发器的 WSClient，并订阅消息与进入单聊事件。 */
   init(data: ChatCodeBridgeOption): void {
     const { appBotOption } = data;
     this.client = new Lark.Client({
       ...appBotOption as any,
-      // loggerLevel: Lark.LoggerLevel.warn,
-      // logger: {
-      //   error: () => {
-      //     console.log('error', arguments);
-      //   },
-      //   warn: () => {
-      //     console.log('warn', arguments);
-      //   },
-      //   info: () => {
-      //     console.log('info', arguments);
-      //   },
-      //   debug: () => {
-      //     console.log('debug', arguments);
-      //   },
-      //   trace: () => {
-      //     console.log('trace', arguments);
-      //   },
-      // },
       disableTokenCache: false,
       appType: Lark.AppType.SelfBuild,
+      domain: Lark.Domain.Feishu,
+      loggerLevel: this.option.loggerLevel,
+      logger: logHandle(this.option.appBotOption.appId as string),
     });
-    this.wsClient = new Lark.WSClient({
-      ...appBotOption as any,
-      // loggerLevel: Lark.LoggerLevel.debug,
-    });
-    this.wsClient.start({
-      eventDispatcher: new Lark.EventDispatcher({}).register({
-        'im.message.receive_v1': async (data) => {
-          if (!this.messageIsToThisBot(data)) return;
-          const options = getFormattedData(data);
-          if (!options?.content?.text) return;
-          addLog(this.option.appBotOption.appId as string, `Q：${options.content.text}`);
-          eventBus.emit(`${this.option.uuid}:messageBridge`, {
-            text: options.content.text,
-            chat_id: data.message.chat_id,
-            message_id: data.message.message_id,
+    const eventDispatcher = new Lark.EventDispatcher({
+      loggerLevel: this.option.loggerLevel,
+      logger: logHandle(this.option.appBotOption.appId as string),
+    }).register({
+      'im.message.receive_v1': async (data) => {
+        if (!this.messageIsToThisBot(data)) {
+          this.sendMessage({
+            option: {
+              chat_id: data.message.chat_id,
+              message_id: data.message.message_id,
+            },
+            result: {
+              text: `不支持的消息类型：${data.message.chat_type}`,
+              status: 'completed',
+            },
           });
-        },
-        'im.chat.access_event.bot_p2p_chat_entered_v1': async (data) => {
-          this.sendWelcomeMessage(data);
-        },
-      }),
-    });
+          return;
+        };
+        const options = getFormattedData(data);
+        if (!options?.content?.text) return;
+        addLog(this.option.appBotOption.appId as string, `Q：${options.content.text}`);
+        eventBus.emit(`${this.option.uuid}:messageBridge`, {
+          text: options.content.text,
+          chat_id: data.message.chat_id,
+          message_id: data.message.message_id,
+        });
+      },
+      'im.chat.access_event.bot_p2p_chat_entered_v1': async (data) => {
+        this.sendWelcomeMessage(data);
+      },
+    })
+    new Lark.WSClient({
+      ...appBotOption as any,
+      domain: Lark.Domain.Feishu,
+      loggerLevel: this.option.loggerLevel,
+      logger: logHandle(this.option.appBotOption.appId as string),
+    }).start({ eventDispatcher });
   }
   /** 用户当日首次进入单聊时发送欢迎卡片（按消息时间做简单去重）。 */
   sendWelcomeMessage(data: any) {
@@ -78,8 +79,8 @@ export class LarkChatApp extends ChatApp {
       data: {
         receive_id: chat_id,
         content: Lark.messageCard.defaultCard({
-          title: '哈哈哈',
-          content: '又是元气满满的一天~'
+          title: aiCodeStatusTemplate.welcomeMessage.title,
+          content: aiCodeStatusTemplate.welcomeMessage.text
         }),
         msg_type: 'interactive'
       }
@@ -123,7 +124,7 @@ export class LarkChatApp extends ChatApp {
   async sendPrefixMessage(data: AiCode2ChatAppResponseContent) {
     const result_1 = await this.client!.im.v1.messageReaction.create({
       path: { message_id: data.option.message_id },
-      data: { reaction_type: { emoji_type: 'OnIt' } },
+      data: { reaction_type: { emoji_type: aiCodeStatusTemplate.thinking.feishu_emoji_type } },
     })
     const card_id = await createCardEntity(this.client!, data.result);
     await this.client!.im.message.create({
@@ -170,7 +171,7 @@ export class LarkChatApp extends ChatApp {
     });
     this.client!.im.v1.messageReaction.create({
       path: { message_id: data.option.message_id },
-      data: { reaction_type: { emoji_type: 'DONE' } },
+      data: { reaction_type: { emoji_type: aiCodeStatusTemplate.completed.feishu_emoji_type } },
     })
   }
 }
