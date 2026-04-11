@@ -19,6 +19,7 @@ import { LarkChatApp } from '@/chatApp/lark';
 import { CursorAiCode } from '@/aiCode/cursor';
 import { eventBusListener } from '@/eventBus';
 import { multiSelectAction } from '@/utils/multiSelectAction';
+import { ClaudeAiCode } from '@/aiCode/claude';
 
 /** 首次向导：交互式收集 IM、AI、工程路径等并写入用户本地 JSON 配置。 */
 const reset = async () => {
@@ -53,6 +54,9 @@ const itemStart = async (option: ChatCodeBridgeOption) => {
   switch (aiCodeBridge) {
     case 'cursor':
       aiCodeInstance = new CursorAiCode(option);
+      break;
+    case 'claude':
+      aiCodeInstance = new ClaudeAiCode(option);
       break;
     default:
       break;

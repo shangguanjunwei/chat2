@@ -55,8 +55,9 @@ function printHelp(): void {
   console.log(`chat-code-bridge help:
 
 用法:
-  chat-code-bridge              启动服务
-  chat-code-bridge start        启动服务
+  chat-code-bridge              启动服务（后台守护进程）
+  chat-code-bridge start        启动服务（后台守护进程）
+  chat-code-bridge nobg         前台运行，日志输出在当前终端
   chat-code-bridge stop         停止服务
   chat-code-bridge reload       重启服务
   chat-code-bridge -h | --help  显示本帮助
@@ -171,11 +172,27 @@ async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
 常用命令:
   chat-code-bridge              启动服务
   chat-code-bridge start        启动服务
+  chat-code-bridge nobg         前台运行
   chat-code-bridge stop         停止服务
   chat-code-bridge reload       重启服务
   chat-code-bridge -h | --help  显示本帮助
 `);
   }
+}
+
+/** 前台启动：不 spawn 守护子进程，在当前进程跑服务，标准输出/错误留在当前终端。 */
+async function runCliForeground(): Promise<void> {
+  if (isDaemonRunning()) {
+    console.log(
+      `服务已启动\n请先关闭后再启动：\n  chat-code-bridge stop\n`,
+    );
+    process.exit(1);
+  }
+  drawLogo();
+  const bridgeOptions = await prepareBridgeOptions();
+  persistDaemonTargets(bridgeOptions);
+  console.log(`chat-code-bridge 前台模式：日志输出在当前终端，Ctrl+C 停止。\n`);
+  await runDaemonServices();
 }
 
 function spawnDaemonChild() {
@@ -231,6 +248,10 @@ export async function run(): Promise<void> {
   if (cmd === 'reload') {
     await runCliStart('reload');
     process.exit(0);
+  }
+  if (cmd === 'nobg') {
+    await runCliForeground();
+    return;
   }
 
   console.error(`未知命令: ${cmd}\n`);

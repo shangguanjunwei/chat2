@@ -33,6 +33,7 @@
   },
   "scripts": {
     "dev": "tsx main.ts",
+    "nobg": "tsx main.ts nobg",
     "stop": "tsx main.ts stop",
     "build": "tsup && node scripts/obfuscate-dist.mjs",
     "build:dev": "tsup --no-minify --sourcemap",

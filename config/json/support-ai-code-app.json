@@ -2,5 +2,9 @@
   {
     "key": "cursor",
     "label": "Cursor"
+  },
+  {
+    "key": "claude",
+    "label": "Claude"
   }
 ]
