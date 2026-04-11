@@ -22,14 +22,19 @@ export const eventBusListener = (
       },
     });
     const callback = async () => {
+      let sequence = 1;
       const throttledStream = throttle(
         (result: StreamPrintFnParams) => {
           chatAppInstance.sendStreamMessage({
-            option: { ...msgContent, ...prefixResult },
+            option: {
+              ...msgContent,
+              ...prefixResult,
+              sequence
+            },
             result,
           });
         },
-        100,
+        210,
         {
           leading: true,
           trailing: true, // 即使开了也没关系，后面会 cancel 掉
@@ -41,17 +46,26 @@ export const eventBusListener = (
           throttledStream.cancel();
           // 手动执行最终逻辑（完全绕过 throttle）
           chatAppInstance.sendStreamMessage({
-            option: { ...msgContent, ...prefixResult },
+            option: {
+              ...msgContent,
+              ...prefixResult,
+              sequence,
+            },
             result,
           });
           chatAppInstance.sendSuffixMessage({
-            option: { ...msgContent, ...prefixResult },
+            option: {
+              ...msgContent,
+              ...prefixResult,
+              sequence,
+            },
             result,
           });
           return;
         }
         // 普通流走 throttle
         throttledStream(result);
+        sequence++;
       };
       await aiCodeInstance.chatByStream(msgContent.text, fn);
     };

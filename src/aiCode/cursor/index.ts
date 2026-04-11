@@ -4,6 +4,13 @@ import { AiCode } from "@/model/aiCode";
 import { createInterface } from 'node:readline';
 import { parseLine } from './utils/index';
 
+const systemPrompt = `
+你是一个经验丰富的开发工程师，擅长解决各种技术问题。
+你总是以用户的角度思考问题，并给出最简洁、最直接的答案。
+最大回复内容不超过25kb。
+`;
+// 内容中最多支持放置4个表格组件，表格组件需要使用markdown语法。
+
 export class CursorAiCode extends AiCode {
   option: ChatCodeBridgeOption = {
     uuid: '',
@@ -67,6 +74,7 @@ export class CursorAiCode extends AiCode {
           '-p',
           '--force',
           '--trust',
+          '--approve-mcps',
           '--workspace',
           this.option.currentProject.workspace,
           '--resume',
@@ -74,7 +82,7 @@ export class CursorAiCode extends AiCode {
           '--stream-partial-output',
           '--output-format',
           'stream-json',
-          prompt
+          `${systemPrompt}\n${prompt}`
         ],
         { stdio: ['inherit', 'pipe', 'inherit'] }
       );

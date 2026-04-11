@@ -3,8 +3,8 @@ import * as Lark from '@larksuiteoapi/node-sdk';
 import dayjs from 'dayjs';
 import {
   getFormattedData,
-  getStreamingCardJson
 } from '@/chatApp/feishu/utils/formatMessage';
+import { createCardEntity } from './utils/CardEvents';
 import eventBus from '@/eventBus';
 import { addLog } from '@/utils/log';
 export class FeishuChatApp extends ChatApp {
@@ -81,9 +81,17 @@ export class FeishuChatApp extends ChatApp {
     });
   }
   async sendStreamMessage(data: AiCode2ChatAppResponseContent) {
-    await this.client!.im.message.patch({
-      path: { message_id: data.option.stream_card_message_id },
-      data: { content: getStreamingCardJson(data.result) }
+    await this.client!.cardkit.v1.cardElement.patch({
+      path: {
+        card_id: data.option.prefixResult.card_id,
+        element_id: data.option.prefixResult.element_id,
+      },
+      data: {
+        partial_element: JSON.stringify({
+          content: data.result.text,
+        }),
+        sequence: data.option.sequence
+      }
     });
   }
   sendMessage(data: AiCode2ChatAppResponseContent) {
@@ -110,25 +118,32 @@ export class FeishuChatApp extends ChatApp {
       path: { message_id: data.option.message_id },
       data: { reaction_type: { emoji_type: 'OnIt' } },
     })
-    const result_2 = await this.client!.im.message.create({
+    const card_id = await createCardEntity(this.client!, data.result);
+    await this.client!.im.message.create({
       params: { receive_id_type: 'chat_id' },
       data: {
         receive_id: data.option.chat_id,
         msg_type: 'interactive',
-        content: getStreamingCardJson(data.result)
-      }
+        content: JSON.stringify({
+          type: 'card',
+          data: { card_id: card_id }
+        }),
+      },
     });
     return {
       ...data.option,
-      reaction_id: result_1.data?.reaction_id,
-      stream_card_message_id: result_2.data?.message_id,
+      prefixResult: {
+        reaction_id: result_1.data?.reaction_id,
+        card_id: card_id,
+        element_id: "custom_id",
+      }
     }
   }
   sendSuffixMessage(data: AiCode2ChatAppResponseContent) {
     this.client!.im.v1.messageReaction.delete({
       path: {
         message_id: data.option.message_id,
-        reaction_id: data.option.reaction_id,
+        reaction_id: data.option.prefixResult.reaction_id,
       }
     });
     this.client!.im.v1.messageReaction.create({
