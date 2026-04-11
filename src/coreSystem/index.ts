@@ -16,9 +16,11 @@ import { WecomChatApp } from '@/chatApp/wecom';
 import { LarkChatApp } from '@/chatApp/lark';
 import { CursorAiCode } from '@/aiCode/cursor';
 import { eventBusListener } from '@/eventBus';
+import { multiSelectAction } from '@/utils/multiSelectAction';
 
 const reset = async () => {
-  const userLocalChatCodeBridgeConfig = chatCodeBridgeConfigTemplate;
+  const userLocalChatCodeBridgeConfig: ChatCodeBridgeOption[] = chatCodeBridgeConfigTemplate;
+  merge(userLocalChatCodeBridgeConfig, [{ label: 'default' }]);
 
   const chatApp: ChatAppItemConfig = await selectAction(chatAppOptions, 'label');
   merge(userLocalChatCodeBridgeConfig, [{ uuid: uuidv4(), appBridge: chatApp.key }]);
@@ -69,8 +71,12 @@ const itemStart = async (option: ChatCodeBridgeOption) => {
 }
 
 export const startCoreSystem = async () => {
-  let userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
+  let userLocalChatCodeBridgeConfig: ChatCodeBridgeOption[] = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
   if (isEmpty(userLocalChatCodeBridgeConfig)) await reset();
   userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
-  userLocalChatCodeBridgeConfig.forEach(itemStart);
+  let readyStartBotList: ChatCodeBridgeOption[] = userLocalChatCodeBridgeConfig;
+  if (userLocalChatCodeBridgeConfig.length !== 1) {
+    readyStartBotList = await multiSelectAction<ChatCodeBridgeOption>(userLocalChatCodeBridgeConfig);
+  }
+  readyStartBotList.forEach(itemStart);
 }

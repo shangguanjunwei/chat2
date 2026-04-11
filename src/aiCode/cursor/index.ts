@@ -14,6 +14,7 @@ const systemPrompt = `
 export class CursorAiCode extends AiCode {
   option: ChatCodeBridgeOption = {
     uuid: '',
+    label: '',
     appBridge: '',
     aiCodeBridge: '',
     currentProject: {

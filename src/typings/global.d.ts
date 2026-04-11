@@ -64,6 +64,7 @@ interface StreamJsonLine {
 
 interface ChatCodeBridgeOption {
   uuid: string;
+  label: string;
   appBridge: string;
   aiCodeBridge: string;
   currentProject: ProjectItem;
