@@ -56,6 +56,7 @@ export const getStreamingCardJson = (data: StreamPrintFnParams) => {
       "elements": [ // 在此传入各个组件的 JSON 数据，组件将按数组顺序纵向流式排列。
         {
           "tag": "markdown", // 组件的标签。
+          "element_id": "custom_id",
           "content": data.text
         }
       ]
