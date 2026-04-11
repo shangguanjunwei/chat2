@@ -111,6 +111,28 @@ function runStop(): void {
 
 type StartIntent = 'start' | 'reload';
 
+/**
+ * 开发模式下通过 `tsx` 拉起子进程时，tsx 会再 spawn 一层 Node 执行用户脚本，
+ * 外层 `ChildProcess.pid` 与内层 `process.pid`（写入 daemon.pid）不一致。
+ * 以 PID 文件为准，与 `stop` / `isDaemonRunning` 一致。
+ */
+async function readDaemonPidFromFile(
+  timeoutMs = 3000,
+  intervalMs = 25,
+): Promise<number | undefined> {
+  const pidPath = getFilePath('USER_LOCAL_DAEMON_PID');
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (existsSync(pidPath)) {
+      const raw = readFileSync(pidPath, 'utf8').trim();
+      const pid = Number.parseInt(raw, 10);
+      if (Number.isFinite(pid) && pid > 0) return pid;
+    }
+    await new Promise<void>((r) => setTimeout(r, intervalMs));
+  }
+  return undefined;
+}
+
 async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
   if (isDaemonRunning()) {
     const action = intent === 'reload' ? '重启' : '启动';
@@ -124,8 +146,10 @@ async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
   persistDaemonTargets(bridgeOptions);
 
   const child = spawnDaemonChild();
-  if (child.pid !== undefined) {
-    console.log(`后台已启动（PID ${child.pid}）。可关闭本终端；停止请执行：chat-code-bridge stop`);
+  const pidFromFile = await readDaemonPidFromFile();
+  const pidToShow = pidFromFile ?? child.pid;
+  if (pidToShow !== undefined) {
+    console.log(`后台已启动（PID ${pidToShow}）。可关闭本终端；停止请执行：chat-code-bridge stop`);
   }
 }
 
