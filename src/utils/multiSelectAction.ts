@@ -2,6 +2,10 @@ import readlinePromises from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import readline from 'node:readline';
 
+/** 未选中：白色小方块；选中：绿色小方块（Unicode BLACK SMALL SQUARE + ANSI 前景色） */
+const squareUnchecked = '\x1b[97m\u25AA\x1b[0m';
+const squareChecked = '\x1b[32m\u25AA\x1b[0m';
+
 const getLabel = <T>(item: T, labelKey: string) =>
   String(item[labelKey as keyof T] ?? '');
 
@@ -50,11 +54,10 @@ const multiSelectByInteractive = <T>(
         ...options.map((item, i) => {
           const label = String(getLabel(item, labelKey) ?? '');
           const checked = selected.has(i);
-          const box = checked ? '[x]' : '[ ]';
+          const box = checked ? squareChecked : squareUnchecked;
           const isFocused = i === index;
-          const prefix = isFocused ? '\x1b[7m' : '';
-          const suffix = isFocused ? '\x1b[0m' : '';
-          return `${prefix}  ${box} ${label}${suffix}\n`;
+          const labelCell = isFocused ? `\x1b[7m${label}\x1b[0m` : label;
+          return `  ${box} ${labelCell}\n`;
         }),
       ];
       stdout.write(lines.join(''));

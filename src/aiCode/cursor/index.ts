@@ -3,10 +3,10 @@ import { spawn } from "node:child_process";
 import { AiCode } from "@/model/aiCode";
 import { createInterface } from 'node:readline';
 import { parseLine } from './utils/index';
+import aiCodeStatusTemplate from '@config/json/chat-code-bridge.base.config.json';
 
-const systemPrompt = `
-最大回复内容不超过28kb。
-`;
+const systemPrompt = ``;
+// 最大回复内容不超过28kb。
 // 你是一个经验丰富的开发工程师，擅长解决各种技术问题。
 // 你总是以用户的角度思考问题，并给出最简洁、最直接的答案。
 // 内容中最多支持放置4个表格组件，表格组件需要使用markdown语法。
@@ -104,7 +104,7 @@ export class CursorAiCode extends AiCode {
           case 'system':
             if (subtype === 'init') {
               printFn({
-                text: '🤔 思考中...',
+                text: aiCodeStatusTemplate.aiCodeStatusTemplate.thinking.text,
                 status: 'thinking',
               });
             }
@@ -115,7 +115,7 @@ export class CursorAiCode extends AiCode {
               lastMessageText = piece;
               accumulatedText += piece;
               printFn({
-                text: accumulatedText.trim() || '💡 执行中...',
+                text: accumulatedText.trim() || aiCodeStatusTemplate.aiCodeStatusTemplate.processing.text,
                 status: 'processing',
               });
             }
@@ -127,7 +127,7 @@ export class CursorAiCode extends AiCode {
               text: [
                 (line as any).result ?? '',
                 '\n --- ',
-                `🎯 耗时 ${totalDuration} ms`
+                aiCodeStatusTemplate.aiCodeStatusTemplate.completed.text.replace('${totalDuration}', totalDuration.toString())
               ].join('\n'),
               status: 'completed',
             });

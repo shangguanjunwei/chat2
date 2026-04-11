@@ -1,0 +1,13 @@
+{
+  "aiCodeStatusTemplate": {
+    "thinking": {
+      "text": "🤔 思考中..."
+    },
+    "processing": {
+      "text": "💡 执行中..."
+    },
+    "completed": {
+      "text": "🎯 耗时 ${totalDuration} ms"
+    }
+  }
+}
