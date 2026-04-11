@@ -52,17 +52,14 @@ function isDaemonRunning(): boolean {
 }
 
 function printHelp(): void {
-  console.log(`chat-code-bridge — IM（飞书/Lark/企微）与 Cursor Agent 桥接
+  console.log(`chat-code-bridge help:
 
 用法:
-  chat-code-bridge              启动（向导/多选后于后台运行）
-  chat-code-bridge start        同上
-  chat-code-bridge stop         停止后台守护进程
-  chat-code-bridge reload       重启后台守护进程
+  chat-code-bridge              启动服务
+  chat-code-bridge start        启动服务
+  chat-code-bridge stop         停止服务
+  chat-code-bridge reload       重启服务
   chat-code-bridge -h | --help  显示本帮助
-
-说明:
-  启动后当前终端可关闭；进程 PID 写入 ~/.chat-code-bridge/.run/daemon.pid
 `);
 }
 
@@ -157,7 +154,7 @@ async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
     if (killedPid !== undefined) await waitForPidExit(killedPid, 10_000);
   } else if (isDaemonRunning()) {
     console.log(
-      `已有后台服务在运行（见 ~/.chat-code-bridge/daemon.pid）。\n请先关闭后再启动：\n  chat-code-bridge stop\n`,
+      `服务已启动\n请先关闭后再启动：\n  chat-code-bridge stop\n`,
     );
     process.exit(1);
   }
@@ -169,11 +166,15 @@ async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
   const pidFromFile = await readDaemonPidFromFile();
   const pidToShow = pidFromFile ?? child.pid;
   if (pidToShow !== undefined) {
-    console.log([
-      '\tchat-code-bridge 服务已启动。',
-      '\t使用 chat-code-bridge -h 查看帮助。',
-      ''
-    ].join('\n'));
+    console.log(`chat-code-bridge 服务已启动。
+
+常用命令:
+  chat-code-bridge              启动服务
+  chat-code-bridge start        启动服务
+  chat-code-bridge stop         停止服务
+  chat-code-bridge reload       重启服务
+  chat-code-bridge -h | --help  显示本帮助
+`);
   }
 }
 
