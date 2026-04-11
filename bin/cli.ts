@@ -88,11 +88,11 @@ function tryKillDaemon(verbose: boolean): void {
   }
   try {
     process.kill(pid, 'SIGTERM');
-    if (verbose) console.log(`已向后台进程发送 SIGTERM（PID ${pid}）。`);
+    if (verbose) console.log(`chat-code-bridge 服务已关闭，欢迎下次使用 （PID ${pid}）。`);
   } catch (e: unknown) {
     const err = e as NodeJS.ErrnoException;
     if (err.code === 'ESRCH') {
-      if (verbose) console.log('该进程已不存在，清理 PID 文件。');
+      if (verbose) console.log('chat-code-bridge 服务已关闭。');
     } else {
       console.error(err);
       process.exit(1);
@@ -149,7 +149,11 @@ async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
   const pidFromFile = await readDaemonPidFromFile();
   const pidToShow = pidFromFile ?? child.pid;
   if (pidToShow !== undefined) {
-    console.log(`后台已启动（PID ${pidToShow}）。可关闭本终端；停止请执行：chat-code-bridge stop`);
+    console.log([
+      '\tchat-code-bridge 服务已启动。',
+      '\t使用 chat-code-bridge -h 查看帮助。',
+      ''
+    ].join('\n'));
   }
 }
 

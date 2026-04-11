@@ -80,7 +80,6 @@ export function drawLogo(color: DrawLogoColor = 'yellow'): void {
     boxRow('└ ...', ''),
     `  └${bar}┘`,
     '',
-    '',
   ];
 
   for (const item of lines) {
