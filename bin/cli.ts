@@ -66,14 +66,17 @@ function printHelp(): void {
 `);
 }
 
-/** 尝试结束守护进程并删除 PID 文件；verbose 为 false 时静默（用于 reload）。 */
-function tryKillDaemon(verbose: boolean): void {
+/**
+ * 尝试结束守护进程并删除 PID 文件；verbose 为 false 时静默（用于 reload）。
+ * @returns 曾尝试终止的 PID（供 reload 等待进程退出）；无需操作时返回 undefined。
+ */
+function tryKillDaemon(verbose: boolean): number | undefined {
   const pidPath = getFilePath('USER_LOCAL_DAEMON_PID');
   if (!existsSync(pidPath)) {
     if (verbose) {
       console.log('未找到后台守护进程 PID 文件（可能未启动或已停止）。');
     }
-    return;
+    return undefined;
   }
   const raw = readFileSync(pidPath, 'utf8').trim();
   const pid = Number.parseInt(raw, 10);
@@ -84,15 +87,15 @@ function tryKillDaemon(verbose: boolean): void {
     } catch {
       /* ignore */
     }
-    return;
+    return undefined;
   }
   try {
     process.kill(pid, 'SIGTERM');
-    if (verbose) console.log(`chat-code-bridge 服务已关闭，欢迎下次使用 （PID ${pid}）。`);
+    // if (verbose) console.log(`chat-code-bridge 服务已关闭。`);
   } catch (e: unknown) {
     const err = e as NodeJS.ErrnoException;
     if (err.code === 'ESRCH') {
-      if (verbose) console.log('chat-code-bridge 服务已关闭。');
+      // if (verbose) console.log('chat-code-bridge 服务已关闭。');
     } else {
       console.error(err);
       process.exit(1);
@@ -102,6 +105,21 @@ function tryKillDaemon(verbose: boolean): void {
     unlinkSync(pidPath);
   } catch {
     /* ignore */
+  }
+  return pid;
+}
+
+/** 轮询直至进程已退出（SIGTERM 后释放资源），避免 reload 与旧实例并行。 */
+async function waitForPidExit(pid: number, timeoutMs: number): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      process.kill(pid, 0);
+    } catch (e: unknown) {
+      const err = e as NodeJS.ErrnoException;
+      if (err.code === 'ESRCH') return;
+    }
+    await new Promise<void>((r) => setTimeout(r, 50));
   }
 }
 
@@ -134,10 +152,12 @@ async function readDaemonPidFromFile(
 }
 
 async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
-  if (isDaemonRunning()) {
-    const action = intent === 'reload' ? '重启' : '启动';
+  if (intent === 'reload') {
+    const killedPid = isDaemonRunning() ? tryKillDaemon(false) : undefined;
+    if (killedPid !== undefined) await waitForPidExit(killedPid, 10_000);
+  } else if (isDaemonRunning()) {
     console.log(
-      `已有后台服务在运行（见 ~/.chat-code-bridge/daemon.pid）。\n请先关闭后再${action}：\n  chat-code-bridge stop\n`,
+      `已有后台服务在运行（见 ~/.chat-code-bridge/daemon.pid）。\n请先关闭后再启动：\n  chat-code-bridge stop\n`,
     );
     process.exit(1);
   }
