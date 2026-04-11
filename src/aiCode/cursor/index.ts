@@ -115,7 +115,7 @@ export class CursorAiCode extends AiCode {
               lastMessageText = piece;
               accumulatedText += piece;
               printFn({
-                text: accumulatedText.trim() || aiCodeStatusTemplate.aiCodeStatusTemplate.processing.text,
+                text: accumulatedText.trim() + '\n' + aiCodeStatusTemplate.aiCodeStatusTemplate.processing.text,
                 status: 'processing',
               });
             }
