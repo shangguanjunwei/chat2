@@ -92,7 +92,7 @@ export class CursorAiCode extends AiCode {
         switch (type) {
           case 'system':
             if (subtype === 'init') {
-              await printFn({
+              printFn({
                 text: '🤔 思考中...',
                 status: 'thinking',
               });
@@ -103,7 +103,7 @@ export class CursorAiCode extends AiCode {
             if (piece !== lastMessageText) {
               lastMessageText = piece;
               accumulatedText += piece;
-              await printFn({
+              printFn({
                 text: accumulatedText.trim() || '💡 执行中...',
                 status: 'processing',
               });
@@ -112,7 +112,7 @@ export class CursorAiCode extends AiCode {
           }
           case 'result': {
             const totalDuration = dayjs().diff(startTimeSec, 'millisecond');
-            await printFn({
+            printFn({
               text: [
                 (line as any).result ?? '',
                 '\n --- ',

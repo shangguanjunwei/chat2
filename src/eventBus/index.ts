@@ -22,18 +22,37 @@ export const eventBusListener = (
       },
     });
     const callback = async () => {
-      const fn = throttle((result: StreamPrintFnParams) => {
-        chatAppInstance.sendStreamMessage({
-          option: { ...msgContent, ...prefixResult },
-          result,
-        });
+      const throttledStream = throttle(
+        (result: StreamPrintFnParams) => {
+          chatAppInstance.sendStreamMessage({
+            option: { ...msgContent, ...prefixResult },
+            result,
+          });
+        },
+        100,
+        {
+          leading: true,
+          trailing: true, // 即使开了也没关系，后面会 cancel 掉
+        }
+      );
+      const fn = (result: StreamPrintFnParams) => {
         if (result.status === 'completed') {
+          // ❗关键：直接取消所有 pending 的 throttle（包括 trailing）
+          throttledStream.cancel();
+          // 手动执行最终逻辑（完全绕过 throttle）
+          chatAppInstance.sendStreamMessage({
+            option: { ...msgContent, ...prefixResult },
+            result,
+          });
           chatAppInstance.sendSuffixMessage({
             option: { ...msgContent, ...prefixResult },
             result,
           });
+          return;
         }
-      }, 200);
+        // 普通流走 throttle
+        throttledStream(result);
+      };
       await aiCodeInstance.chatByStream(msgContent.text, fn);
     };
     if (!currentChatSessionCreatedAt || dayjs().isAfter(dayjs(currentChatSessionCreatedAt).endOf('day'))) {
