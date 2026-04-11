@@ -5,7 +5,7 @@ type TreeNode = {
   content?: unknown;
 };
 
-type Item = Record<string, unknown>;
+type Item = Record<string, any>;
 
 type ChatAppItemConfig = {
   key: string;
@@ -90,4 +90,12 @@ interface ChatApp2AiCodeMessageContent {
 interface AiCode2ChatAppResponseContent {
   option: ChatApp2AiCodeMessageContent;
   result: StreamPrintFnParams;
+}
+
+interface PackageJson {
+  version: string;
+  name: string;
+  author: string;
+  homepage: string;
+  dependencies: Record<string, string>;
 }

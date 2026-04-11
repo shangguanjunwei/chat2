@@ -4,9 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'tsup';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')) as {
-  dependencies?: Record<string, string>;
-};
+const pkg: PackageJson = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 export default defineConfig({
   entry: ['bin/cli.ts'],

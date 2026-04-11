@@ -2,12 +2,6 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-interface PackageJson {
-  version: string;
-  name: string;
-  author: string;
-}
-
 function readPackageJson(): PackageJson {
   const here = dirname(fileURLToPath(import.meta.url));
   const candidates = [join(here, '..', 'package.json'), join(here, '..', '..', 'package.json')];
@@ -16,7 +10,7 @@ function readPackageJson(): PackageJson {
       return JSON.parse(readFileSync(p, 'utf8')) as PackageJson;
     }
   }
-  return { version: '0.0.0', name: '', author: '' };
+  return { version: '0.0.0', name: '', author: '', homepage: '', dependencies: {} } as PackageJson;
 }
 
 const pkg = readPackageJson();
@@ -76,6 +70,7 @@ export function drawLogo(color: DrawLogoColor = 'yellow'): void {
     `  ┌${bar}┐`,
     boxRow(pkg.name, `v${pkg.version}`),
     boxRow('author:', pkg.author),
+    boxRow('', pkg.homepage),
     boxRow('', ''),
     boxRow('- Other Recommendations packages:', ''),
     boxRow('└ @amoayun/monaco-editor-vue3', ''),

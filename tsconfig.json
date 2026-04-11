@@ -24,6 +24,7 @@
     "main.ts",
     "src/**/*.ts",
     "config/**/*.ts",
-    "bin/cli.ts"
+    "bin/cli.ts",
+    "tsup.config.ts"
   ]
 }
