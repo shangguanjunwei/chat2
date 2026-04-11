@@ -7,6 +7,7 @@ import {
 import { createCardEntity } from './utils/CardEvents';
 import eventBus from '@/eventBus';
 import { addLog } from '@/utils/log';
+import { getStreamingCardJson } from './utils/formatMessage';
 export class FeishuChatApp extends ChatApp {
   client: Lark.Client | null = null;
   wsClient: Lark.WSClient | null = null;
@@ -81,18 +82,16 @@ export class FeishuChatApp extends ChatApp {
     });
   }
   async sendStreamMessage(data: AiCode2ChatAppResponseContent) {
-    await this.client!.cardkit.v1.cardElement.patch({
+    await this.client!.cardkit.v1.cardElement.content({
       path: {
         card_id: data.option.prefixResult.card_id,
         element_id: data.option.prefixResult.element_id,
       },
       data: {
-        partial_element: JSON.stringify({
-          content: data.result.text,
-        }),
-        sequence: data.option.sequence
-      }
-    });
+        content: data.result.text,
+        sequence: data.option.sequence,
+      },
+    })
   }
   sendMessage(data: AiCode2ChatAppResponseContent) {
     this.client!.im.v1.message.reply({
@@ -130,6 +129,7 @@ export class FeishuChatApp extends ChatApp {
         }),
       },
     });
+
     return {
       ...data.option,
       prefixResult: {
@@ -139,7 +139,20 @@ export class FeishuChatApp extends ChatApp {
       }
     }
   }
-  sendSuffixMessage(data: AiCode2ChatAppResponseContent) {
+  async sendSuffixMessage(data: AiCode2ChatAppResponseContent) {
+    await this.client!.cardkit.v1.card.update({
+      data: {
+        card: {
+          type: "card_json",
+          data: getStreamingCardJson(data.result),
+        },
+        sequence: data.option.sequence,
+      },
+      path: {
+        card_id: data.option.prefixResult.card_id
+      }
+    })
+    addLog(this.option.appBotOption.appId as string, `A：${data.result.text}`);
     this.client!.im.v1.messageReaction.delete({
       path: {
         message_id: data.option.message_id,
@@ -150,6 +163,5 @@ export class FeishuChatApp extends ChatApp {
       path: { message_id: data.option.message_id },
       data: { reaction_type: { emoji_type: 'DONE' } },
     })
-    addLog(this.option.appBotOption.appId as string, `A：${data.result.text}`);
   }
 }

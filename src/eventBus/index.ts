@@ -34,7 +34,7 @@ export const eventBusListener = (
             result,
           });
         },
-        210,
+        80,
         {
           leading: true,
           trailing: true, // 即使开了也没关系，后面会 cancel 掉
@@ -44,15 +44,6 @@ export const eventBusListener = (
         if (result.status === 'completed') {
           // ❗关键：直接取消所有 pending 的 throttle（包括 trailing）
           throttledStream.cancel();
-          // 手动执行最终逻辑（完全绕过 throttle）
-          chatAppInstance.sendStreamMessage({
-            option: {
-              ...msgContent,
-              ...prefixResult,
-              sequence,
-            },
-            result,
-          });
           chatAppInstance.sendSuffixMessage({
             option: {
               ...msgContent,
