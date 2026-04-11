@@ -7,5 +7,9 @@ export enum FilePathEnum {
   USER_LOCAL_PROJECT_CONFIG_LIST = '.chat-code-bridge/project-config-list.json',
   // 用户本地聊天应用配置文件
   USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG = '.chat-code-bridge/chat-code-bridge.json',
+  /** 前台选中的 bridge 列表，供子进程读取 */
+  USER_LOCAL_DAEMON_TARGETS = '.chat-code-bridge/.run/daemon-targets.json',
+  /** 后台守护进程 PID，供 stop/reload 使用 */
+  USER_LOCAL_DAEMON_PID = '.chat-code-bridge/.run/daemon.pid',
 }
 

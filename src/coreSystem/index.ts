@@ -10,7 +10,9 @@ import {
   createDirectory,
   readFileContentAsJson,
   getFilePath,
-} from "@/utils/fileEvents";
+} from '@/utils/fileEvents';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { FeishuChatApp } from '@/chatApp/feishu';
 import { WecomChatApp } from '@/chatApp/wecom';
 import { LarkChatApp } from '@/chatApp/lark';
@@ -77,9 +79,9 @@ const itemStart = async (option: ChatCodeBridgeOption) => {
 }
 
 /**
- * 启动核心流程：读取用户配置；若为空则走 `reset()`；若多条配置则多选后逐个 `itemStart`。
+ * 前台：读取配置；若无则向导；若多条则多选。返回本次要启动的 bridge 列表。
  */
-export const startCoreSystem = async () => {
+export async function prepareBridgeOptions(): Promise<ChatCodeBridgeOption[]> {
   let userLocalChatCodeBridgeConfig: ChatCodeBridgeOption[] = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
   if (isEmpty(userLocalChatCodeBridgeConfig)) await reset();
   userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
@@ -87,5 +89,30 @@ export const startCoreSystem = async () => {
   if (userLocalChatCodeBridgeConfig.length !== 1) {
     readyStartBotList = await multiSelectAction<ChatCodeBridgeOption>(userLocalChatCodeBridgeConfig);
   }
-  readyStartBotList.forEach(itemStart);
+  return readyStartBotList;
+}
+
+/** 将选中的 bridge 写入用户目录，供子进程读取。 */
+export function persistDaemonTargets(options: ChatCodeBridgeOption[]): void {
+  writeFileContentAsJson(getFilePath('USER_LOCAL_DAEMON_TARGETS'), options);
+}
+
+/**
+ * 子进程内执行：读 daemon-targets（或完整配置）、写 PID、拉起 IM/AI。
+ * 由 CLI 通过环境变量 `CHAT_CODE_BRIDGE_CHILD=1` 触发子进程。
+ */
+export async function runDaemonServices(): Promise<void> {
+  const targetsPath = getFilePath('USER_LOCAL_DAEMON_TARGETS');
+  let list: ChatCodeBridgeOption[] | null = readFileContentAsJson(targetsPath);
+  if (!list || !Array.isArray(list) || list.length === 0) {
+    list = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
+  }
+  if (!list || !Array.isArray(list) || list.length === 0) {
+    console.error('无可用配置，请先运行 chat-code-bridge 完成向导。');
+    process.exit(1);
+  }
+  const pidPath = getFilePath('USER_LOCAL_DAEMON_PID');
+  mkdirSync(dirname(pidPath), { recursive: true });
+  writeFileSync(pidPath, `${process.pid}\n`);
+  list.forEach(itemStart);
 }

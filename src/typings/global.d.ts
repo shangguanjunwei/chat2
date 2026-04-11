@@ -84,9 +84,9 @@ interface StreamPrintFnParams {
 }
 
 interface ChatApp2AiCodeMessageContent {
-  text: string;
   chat_id: string;
   message_id: string;
+  text?: string;
   [key: string]: any;
 }
 

@@ -37,7 +37,19 @@ export class FeishuChatApp extends ChatApp {
       logger: logHandle(this.option.appBotOption.appId as string),
     }).register({
       'im.message.receive_v1': async (data) => {
-        if (!this.messageIsToThisBot(data)) return;
+        if (!this.messageIsToThisBot(data)) {
+          this.sendMessage({
+            option: {
+              chat_id: data.message.chat_id,
+              message_id: data.message.message_id,
+            },
+            result: {
+              text: `不支持的消息类型：${data.message.chat_type}`,
+              status: 'completed',
+            },
+          });
+          return;
+        };
         const options = getFormattedData(data);
         if (!options?.content?.text) return;
         addLog(this.option.appBotOption.appId as string, `Q：${options.content.text}`);
