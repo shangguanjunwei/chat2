@@ -8,6 +8,7 @@ import { createCardEntity } from './utils/CardEvents';
 import eventBus from '@/eventBus';
 import { addLog } from '@/utils/log';
 import { getStreamingCardJson } from './utils/formatMessage';
+import { aiCodeStatusTemplate } from '@config/json/chat-code-bridge.base.config.json';
 export class FeishuChatApp extends ChatApp {
   client: Lark.Client | null = null;
   wsClient: Lark.WSClient | null = null;
@@ -22,30 +23,11 @@ export class FeishuChatApp extends ChatApp {
     const { appBotOption } = data;
     this.client = new Lark.Client({
       ...appBotOption as any,
-      // loggerLevel: Lark.LoggerLevel.warn,
-      // logger: {
-      //   error: () => {
-      //     console.log('error', arguments);
-      //   },
-      //   warn: () => {
-      //     console.log('warn', arguments);
-      //   },
-      //   info: () => {
-      //     console.log('info', arguments);
-      //   },
-      //   debug: () => {
-      //     console.log('debug', arguments);
-      //   },
-      //   trace: () => {
-      //     console.log('trace', arguments);
-      //   },
-      // },
       disableTokenCache: false,
       appType: Lark.AppType.SelfBuild,
     });
     this.wsClient = new Lark.WSClient({
       ...appBotOption as any,
-      // loggerLevel: Lark.LoggerLevel.debug,
     });
     this.wsClient.start({
       eventDispatcher: new Lark.EventDispatcher({}).register({
@@ -74,8 +56,8 @@ export class FeishuChatApp extends ChatApp {
       data: {
         receive_id: chat_id,
         content: Lark.messageCard.defaultCard({
-          title: '哈哈哈',
-          content: '又是元气满满的一天~'
+          title: aiCodeStatusTemplate.welcomeMessage.title,
+          content: aiCodeStatusTemplate.welcomeMessage.text
         }),
         msg_type: 'interactive'
       }
@@ -115,7 +97,7 @@ export class FeishuChatApp extends ChatApp {
   async sendPrefixMessage(data: AiCode2ChatAppResponseContent) {
     const result_1 = await this.client!.im.v1.messageReaction.create({
       path: { message_id: data.option.message_id },
-      data: { reaction_type: { emoji_type: 'OnIt' } },
+      data: { reaction_type: { emoji_type: aiCodeStatusTemplate.thinking.feishu_emoji_type } },
     })
     const card_id = await createCardEntity(this.client!, data.result);
     await this.client!.im.message.create({
@@ -161,7 +143,7 @@ export class FeishuChatApp extends ChatApp {
     });
     this.client!.im.v1.messageReaction.create({
       path: { message_id: data.option.message_id },
-      data: { reaction_type: { emoji_type: 'DONE' } },
+      data: { reaction_type: { emoji_type: aiCodeStatusTemplate.completed.feishu_emoji_type } },
     })
   }
 }

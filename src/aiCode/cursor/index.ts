@@ -12,25 +12,7 @@ const systemPrompt = ``;
 // 内容中最多支持放置4个表格组件，表格组件需要使用markdown语法。
 
 export class CursorAiCode extends AiCode {
-  option: ChatCodeBridgeOption = {
-    uuid: '',
-    label: '',
-    appBridge: '',
-    aiCodeBridge: '',
-    currentProject: {
-      key: '',
-      title: '',
-      workspace: '',
-    },
-    appBotOption: {
-      key: '',
-      label: '',
-      needConfigKeys: [],
-    },
-    currentChatSession: '',
-    currentChatSessionCreatedAt: 0,
-    currentChatSessionChangeRate: 'day',
-  }
+  option: ChatCodeBridgeOption;
 
   constructor(option: ChatCodeBridgeOption) {
     super();

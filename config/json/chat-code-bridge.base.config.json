@@ -1,13 +1,19 @@
 {
   "aiCodeStatusTemplate": {
     "thinking": {
-      "text": "🤔 思考中..."
+      "text": "🤔 思考中...",
+      "feishu_emoji_type": "OnIt"
     },
     "processing": {
       "text": "💡 执行中..."
     },
     "completed": {
-      "text": "🎯 耗时 ${totalDuration} ms"
+      "text": "🎯 耗时 ${totalDuration} ms",
+      "feishu_emoji_type": "DONE"
+    },
+    "welcomeMessage": {
+      "title": "私人管家",
+      "text": "🎉 我是你的私人助手，有什么可以帮你的吗？"
     }
   }
 }
