@@ -31,6 +31,7 @@
   },
   "scripts": {
     "dev": "tsx watch main.ts",
+    "stop": "tsx main.ts stop",
     "dev:uw": "tsx main.ts",
     "build": "tsup && node scripts/obfuscate-dist.mjs",
     "build:dev": "tsup --no-minify --sourcemap",
