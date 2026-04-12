@@ -6,25 +6,55 @@ import { createInterface } from 'node:readline';
 import { addLog } from "@/utils/log";
 import { parseLine } from './utils/index';
 import aiCodeStatusTemplate from '@config/json/chat-code-bridge.base.config.json';
+import eventBus from "@/eventBus/index";
+import { readFileContentAsJson, getFilePath } from '@/utils/fileEvents';
 
 export class ClaudeAiCode extends AiCode {
   option: ChatCodeBridgeOption;
-  sessionId: string = '';
+  flag: boolean = false;
 
   constructor(option: ChatCodeBridgeOption) {
     super();
     this.option = option;
   }
 
+  getLatestOption(): any {
+    if (this.flag) return this.option;
+    const userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
+    const obj = userLocalChatCodeBridgeConfig.find((item: ChatCodeBridgeOption) => item.uuid === this.option.uuid);
+    this.option = obj;
+    if (obj.currentChatSession.endsWith('-create-hasUsed')) {
+      this.flag = true;
+    }
+    return this.option;
+  }
+
   chatByStream(prompt: string, printFn: (obj: StreamPrintFnParams) => Promise<void>): Promise<any> {
     return new Promise(async (resolve, reject) => {
+      let option = this.getLatestOption();
+      let shortCli = '';
+      let sessionId = option.currentChatSession;
+      console.log('option', option);
+      if (option.currentChatSession.endsWith('-create')) {
+        eventBus.emit(
+          `${option.uuid}:setCurrentChatSessionByUuid`,
+          { uuid: option.uuid, sessionId: option.currentChatSession + '-hasUsed' }
+        );
+        sessionId = sessionId.replace('-create', '');
+        shortCli = '--session-id';
+      } else if (option.currentChatSession.endsWith('-create-hasUsed')) {
+        sessionId = sessionId.replace('-create-hasUsed', '');
+        shortCli = '-r';
+      } else {
+        throw new Error('当前会话状态不正确');
+      }
       let accumulatedText = '';
       const startTimeSec = dayjs();
       const child = spawn(
         'claude',
         [
-          this.sessionId ? '-r' : '--session-id',
-          this.option.currentChatSession,
+          shortCli,
+          sessionId,
           '--allowedTools',
           'Bash(git:*)',
           '--effort',
@@ -37,7 +67,7 @@ export class ClaudeAiCode extends AiCode {
           '--verbose'
         ],
         {
-          cwd: this.option.currentProject.workspace,
+          cwd: option.currentProject.workspace,
           stdio: ['inherit', 'pipe', 'inherit']
         }
       );
@@ -49,7 +79,7 @@ export class ClaudeAiCode extends AiCode {
       const rl = createInterface({ input: stdout, crlfDelay: Infinity });
       let lastMessageText = '';
       rl.on('line', async (raw) => {
-        addLog(this.option.appBotOption.appId, raw);
+        addLog(option.appBotOption.appId, raw);
         const line = parseLine(raw);
         if (!line) return;
         const { type, subtype } = line;
@@ -85,7 +115,6 @@ export class ClaudeAiCode extends AiCode {
               ].join('\n'),
               status: 'completed',
             });
-            this.sessionId = this.option.currentChatSession;
             break;
           }
           default:
@@ -114,7 +143,7 @@ export class ClaudeAiCode extends AiCode {
 
   createChat(): Promise<string> {
     return new Promise((resolve, reject) => {
-      resolve(uuidv4());
+      resolve(uuidv4() + '-create');
     });
   }
 }

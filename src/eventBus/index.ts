@@ -106,6 +106,19 @@ export const eventBusListener = (
     writeFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'), userLocalChatCodeBridgeConfig);
     callback();
   });
+
+  eventBus.on(`${uuid}:setCurrentChatSessionByUuid`, (content: { uuid: string, sessionId: string, callback?: (...args: any[]) => void }) => {
+    const { uuid, sessionId, callback } = content;
+    const userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
+    const index = userLocalChatCodeBridgeConfig.findIndex((item: ChatCodeBridgeOption) => item.uuid === uuid);
+    userLocalChatCodeBridgeConfig[index] = {
+      ...option,
+      currentChatSession: sessionId,
+      currentChatSessionCreatedAt: dayjs().valueOf(),
+    };
+    writeFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'), userLocalChatCodeBridgeConfig);
+    callback && callback(userLocalChatCodeBridgeConfig[index]);
+  });
 }
 
 export default eventBus;

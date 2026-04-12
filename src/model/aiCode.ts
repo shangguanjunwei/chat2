@@ -8,4 +8,6 @@ export abstract class AiCode implements AiCodeInterface {
   abstract chatByStream(...args: any[]): void | Promise<any>;
   /** 非流式、一次性文本对话（若实现）。 */
   abstract chatByText(...args: any[]): void | Promise<any>;
+  /** 获取最新配置信息 */
+  abstract getLatestOption(): any | Promise<any>;
 }

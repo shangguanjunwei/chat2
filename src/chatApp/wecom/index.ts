@@ -1,6 +1,6 @@
 import AiBot, { generateReqId, WSClient, WsFrame } from '@wecom/aibot-node-sdk';
 import { ChatApp } from '@/model/chatApp';
-import eventBus from '@/eventBus';
+import eventBus from '@/eventBus/index';
 import { addLog } from '@/utils/log';
 
 /** 企业微信 AI 机器人 ChatApp：WebSocket 收消息并以流式接口回复。 */

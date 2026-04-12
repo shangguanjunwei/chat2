@@ -5,7 +5,7 @@ import {
   getFormattedData,
 } from '@/chatApp/feishu/utils/formatMessage';
 import { createCardEntity } from './utils/CardEvents';
-import eventBus from '@/eventBus';
+import eventBus from '@/eventBus/index';
 import { addLog } from '@/utils/log';
 import { getStreamingCardJson } from './utils/formatMessage';
 import { aiCodeStatusTemplate } from '@config/json/chat-code-bridge.base.config.json';

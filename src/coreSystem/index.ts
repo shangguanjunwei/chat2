@@ -17,7 +17,7 @@ import { FeishuChatApp } from '@/chatApp/feishu';
 import { WecomChatApp } from '@/chatApp/wecom';
 import { LarkChatApp } from '@/chatApp/lark';
 import { CursorAiCode } from '@/aiCode/cursor';
-import { eventBusListener } from '@/eventBus';
+import { eventBusListener } from '@/eventBus/index';
 import { multiSelectAction } from '@/utils/multiSelectAction';
 import { ClaudeAiCode } from '@/aiCode/claude';
 

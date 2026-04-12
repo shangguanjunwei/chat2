@@ -4,6 +4,7 @@ import { AiCode } from "@/model/aiCode";
 import { createInterface } from 'node:readline';
 import { parseLine } from './utils/index';
 import aiCodeStatusTemplate from '@config/json/chat-code-bridge.base.config.json';
+import { readFileContentAsJson, getFilePath } from '@/utils/fileEvents';
 
 const systemPrompt = ``;
 // 最大回复内容不超过28kb。
@@ -16,11 +17,22 @@ const systemPrompt = ``;
  */
 export class CursorAiCode extends AiCode {
   option: ChatCodeBridgeOption;
+  flag: boolean = false;
 
   constructor(option: ChatCodeBridgeOption) {
     super();
     this.option = option;
   }
+
+  getLatestOption(): any {
+    if (this.flag) return this.option;
+    const userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
+    const obj = userLocalChatCodeBridgeConfig.find((item: ChatCodeBridgeOption) => item.uuid === this.option.uuid);
+    this.option = obj;
+    this.flag = true;
+    return this.option;
+  }
+
   /** 调用 `agent create-chat`，将返回的会话 id 写入 `option.currentChatSession`。 */
   createChat(): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -42,8 +54,7 @@ export class CursorAiCode extends AiCode {
       child.on('error', reject);
       child.on('close', (code) => {
         if (code === 0) {
-          this.option.currentChatSession = stdout.trim();
-          resolve(this.option.currentChatSession);
+          resolve(stdout.trim());
         } else {
           reject(new Error(stderr.trim() || stdout.trim() || `agent 退出码 ${code}`));
         }
@@ -58,6 +69,7 @@ export class CursorAiCode extends AiCode {
     printFn: (obj: StreamPrintFnParams) => Promise<void>
   ): Promise<any> {
     return new Promise(async (resolve, reject) => {
+      const option = this.getLatestOption();
       let accumulatedText = '';
       const startTimeSec = dayjs();
       const child = spawn(
@@ -68,9 +80,9 @@ export class CursorAiCode extends AiCode {
           '--trust',
           '--approve-mcps',
           '--workspace',
-          this.option.currentProject.workspace,
+          option.currentProject.workspace,
           '--resume',
-          this.option.currentChatSession,
+          option.currentChatSession,
           '--stream-partial-output',
           '--output-format',
           'stream-json',
@@ -144,6 +156,7 @@ export class CursorAiCode extends AiCode {
   /** 非流式：使用 `agent` 的 text 输出格式执行单次提示（当前实现仅解析退出码）。 */
   chatByText(prompt: string): Promise<any> {
     return new Promise((resolve, reject) => {
+      const option = this.getLatestOption();
       const child = spawn(
         'agent',
         [
@@ -151,15 +164,15 @@ export class CursorAiCode extends AiCode {
           '--force',
           '--trust',
           '--workspace',
-          this.option.currentProject.workspace,
+          option.currentProject.workspace,
           '--resume',
-          this.option.currentChatSession,
+          option.currentChatSession,
           '--output-format',
           'text',
           prompt
         ],
         {
-          cwd: this.option.currentProject.workspace,
+          cwd: option.currentProject.workspace,
           env: process.env,
           stdio: ['ignore', 'pipe', 'pipe'],
         }
@@ -173,7 +186,6 @@ export class CursorAiCode extends AiCode {
       child.on('error', reject);
       child.on('close', (code) => {
         if (code === 0) {
-          // this.option.currentChatSession = stdout.trim();
           resolve(null);
         } else {
           reject(new Error(stderr.trim() || stdout.trim() || `agent 退出码 ${code}`));
