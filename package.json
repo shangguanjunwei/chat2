@@ -1,6 +1,6 @@
 {
   "name": "@amoayun/chat-code-bridge",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Bridge Feishu (Lark) and WeCom IM to the Cursor Agent CLI (agent) for chat-driven local workflows.",
   "keywords": [
     "feishu",

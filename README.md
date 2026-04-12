@@ -4,7 +4,7 @@
 
 在**飞书 / Lark / 企业微信**中收发消息，并将会话对接到本机 **Cursor Agent CLI**（`agent`），用 IM 驱动本地开发工作流。
 
-【⚠️】**1.0.1** 与 **1.0.2** 配置不兼容；升级至 1.0.2 前请删除用户主目录下的 `~/.chat-code-bridge` 后再启动。详见下文 [7. 版本记录](#7-版本记录)。
+【⚠️】**1.0.1** 与 **1.0.2 / 1.0.3** 配置不兼容；升级至 1.0.2 / 1.0.3 前请删除用户主目录下的 `~/.chat-code-bridge` 后再启动。详见下文 [7. 版本记录](#7-版本记录)。
 
 ## 目录
 
@@ -27,8 +27,8 @@
 > | 依赖                   | 说明                                                                                                                                                                                                                                                                                                              |
 > | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 > | **Node.js**          | `>= 22`                                                                                                                                                                                                                                                                                                         |
-> | **Cursor Agent CLI** | 终端可执行 `agent`，见 [Cursor CLI 安装](https://cursor.com/docs/cli/installation)                                                                                                                                                                                                                                       |
-> | **IM 开放平台机器人**       | 已创建应用/机器人 - 飞书：[创建应用](https://open.feishu.cn/document/home/develop-a-bot-in-5-minutes/create-an-app)、[机器人快速入门](https://open.feishu.cn/document/develop-robots/quick-start)｜企业微信：[智能机器人教程](https://developer.work.weixin.qq.com/tutorial/robot)、[开始开发](https://developer.work.weixin.qq.com/document/path/96713) |
+> | **Vibe Coding 工具** | 本项目支持 **Cursor Agent** 和 **Claude AI Code**。终端需可执行 `cursor agent`（[安装](https://cursor.com/docs/cli/installation)）或 `claude`（[安装](https://docs.anthropic.com/en/docs/claude-code)），二选一即可。 |                                                                                                                                                                                                                                       |
+> | **IM 开放平台机器人**       | 已创建应用/机器人 - 飞书：[创建应用](https://open.feishu.cn/document/home/develop-a-bot-in-5-minutes/create-an-app)、[机器人快速入门](https://open.feishu.cn/document/develop-robots/quick-start) **【⚠️需：①开启长连接订阅 ②添加「用户进入与机器人的会话」+「接收消息事件」】**｜企业微信：[智能机器人教程](https://developer.work.weixin.qq.com/tutorial/robot)、[开始开发](https://developer.work.weixin.qq.com/document/path/96713) |
 >
 
 ## 2. 安装
@@ -91,7 +91,7 @@
 >   currentProject: ProjectItem; // workspace
 >   appBotOption: Item; // 机器人配置
 >   loggerLevel: Lark.LoggerLevel; // 日志级别 数字 0:fatal 1:error 2:warn 3:info 4:debug 5:trace
->   currentChatSession: string; // 会话 sessionid
+>   currentChatSession: string; // 会话 sessionid（禁止人工手动创建）
 >   currentChatSessionCreatedAt: number; // 会话创建时间
 >   currentChatSessionChangeRate: 'day' | 'week' | 'month' | 'year' | 'never'; // 多久新建一个会话 默认 day
 > }
@@ -101,8 +101,12 @@
 
 > ### 5.1 飞书 / Lark（国际版）
 >
-> > - **appId**：应用 App ID  
+> > - **appId**：应用 App ID
 > > - **appSecret**：应用 Secret
+> >
+> > 【⚠️】飞书开放平台控制台配置要点：
+> > 1. 在**「事件与回调」→「事件配置」**和**「回调配置」**中分别开启订阅，**订阅方式**选择**「使用长连接接收事件」**
+> > 2. 在事件配置中需添加两个事件：**「用户进入与机器人的会话」**和**「接收消息事件」**
 > >
 > > 飞书开放平台：[https://open.feishu.cn](https://open.feishu.cn)
 >
@@ -144,12 +148,13 @@
 
 ## 7. 版本记录
 
-> **版本兼容性（1.0.1 → 1.0.2）**  
-> **1.0.1** 与 **1.0.2** 的本地配置格式与约定不兼容。从 1.0.1 升级到 1.0.2 时，请先**停止**正在运行的服务，再删除用户主目录下的 `**~/.chat-code-bridge`** 整个目录（或至少移走其中配置后再启动），然后重新安装/运行 1.0.2 并按向导完成配置。未清理旧目录直接启动 1.0.2 可能导致异常。
+> **版本兼容性（1.0.1 → 1.0.2 / 1.0.3）**  
+> **1.0.1** 与 **1.0.2 / 1.0.3** 的本地配置格式与约定不兼容。从 1.0.1 升级到 1.0.2 / 1.0.3 时，请先**停止**正在运行的服务，再删除用户主目录下的 `**~/.chat-code-bridge`** 整个目录（或至少移走其中配置后再启动），然后重新安装/运行 1.0.2 / 1.0.3 并按向导完成配置。未清理旧目录直接启动 1.0.2 / 1.0.3 可能导致异常。
 >
 >
 > | 版本        | 发布日期       | 说明                                                            |
 > | --------- | ---------- | ------------------------------------------------------------- |
+> | **1.0.3** | 2026-04-12 | 解决了一些已知问题；**与 1.0.1 本地配置不兼容**，升级须按上文清理 `~/.chat-code-bridge`。 |
 > | **1.0.2** | 2026-04-12 | 解决了一些已知问题；**与 1.0.1 本地配置不兼容**，升级须按上文清理 `~/.chat-code-bridge`。 |
 > | **1.0.1** | 2026-04-10 | 第一版工具试试水                                                      |
 >
