@@ -56,6 +56,7 @@ export class ClaudeAiCode extends AiCode {
           shortCli,
           sessionId,
           '--allowedTools',
+          'Edit',
           'Bash(git:*)',
           '--effort',
           'high',
