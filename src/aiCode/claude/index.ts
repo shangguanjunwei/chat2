@@ -3,7 +3,6 @@ import { spawn } from 'node:child_process';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs";
 import { createInterface } from 'node:readline';
-import { addLog } from "@/utils/log";
 import { parseLine } from './utils/index';
 import aiCodeStatusTemplate from '@config/json/chat-code-bridge.base.config.json';
 import eventBus from "@/eventBus/index";
@@ -80,7 +79,6 @@ export class ClaudeAiCode extends AiCode {
       const rl = createInterface({ input: stdout, crlfDelay: Infinity });
       let lastMessageText = '';
       rl.on('line', async (raw) => {
-        addLog(option.appBotOption.appId, raw);
         const line = parseLine(raw);
         if (!line) return;
         const { type, subtype } = line;

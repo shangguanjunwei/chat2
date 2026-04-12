@@ -78,7 +78,6 @@ export class CursorAiCode extends AiCode {
           '-p',
           '--force',
           '--trust',
-          '--approve-mcps',
           '--workspace',
           option.currentProject.workspace,
           '--resume',
@@ -88,7 +87,9 @@ export class CursorAiCode extends AiCode {
           'stream-json',
           `${systemPrompt}\n${prompt}`
         ],
-        { stdio: ['inherit', 'pipe', 'inherit'] }
+        {
+          stdio: ['inherit', 'pipe', 'inherit']
+        }
       );
       const stdout = child.stdout;
       if (!stdout) {
@@ -98,6 +99,7 @@ export class CursorAiCode extends AiCode {
       const rl = createInterface({ input: stdout, crlfDelay: Infinity });
       let lastMessageText = '';
       rl.on('line', async (raw) => {
+        console.log('line', raw);
         const line = parseLine(raw);
         if (!line) return;
         const { type, subtype } = line;
