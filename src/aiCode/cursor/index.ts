@@ -36,8 +36,9 @@ export class CursorAiCode extends AiCode {
   /** 调用 `agent create-chat`，将返回的会话 id 写入 `option.currentChatSession`。 */
   createChat(): Promise<string> {
     return new Promise((resolve, reject) => {
+      const cmd = process.platform === 'win32' ? 'agent.cmd' : 'agent';
       const child = spawn(
-        'agent',
+        cmd,
         ['create-chat'],
         {
           cwd: this.option.currentProject.workspace,
