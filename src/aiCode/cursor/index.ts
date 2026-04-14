@@ -18,10 +18,12 @@ const systemPrompt = ``;
 export class CursorAiCode extends AiCode {
   option: ChatCodeBridgeOption;
   flag: boolean = false;
+  cmd: string;
 
   constructor(option: ChatCodeBridgeOption) {
     super();
     this.option = option;
+    this.cmd = process.platform === 'win32' ? 'agent.cmd' : 'agent';
   }
 
   getLatestOption(): any {
@@ -36,9 +38,8 @@ export class CursorAiCode extends AiCode {
   /** 调用 `agent create-chat`，将返回的会话 id 写入 `option.currentChatSession`。 */
   createChat(): Promise<string> {
     return new Promise((resolve, reject) => {
-      const cmd = process.platform === 'win32' ? 'agent.cmd' : 'agent';
       const child = spawn(
-        cmd,
+        this.cmd,
         ['create-chat'],
         {
           cwd: this.option.currentProject.workspace,
@@ -74,7 +75,7 @@ export class CursorAiCode extends AiCode {
       let accumulatedText = '';
       const startTimeSec = dayjs();
       const child = spawn(
-        'agent',
+        this.cmd,
         [
           '-p',
           '--force',
@@ -161,7 +162,7 @@ export class CursorAiCode extends AiCode {
     return new Promise((resolve, reject) => {
       const option = this.getLatestOption();
       const child = spawn(
-        'agent',
+        this.cmd,
         [
           '-p',
           '--force',
