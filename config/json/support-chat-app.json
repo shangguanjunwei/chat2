@@ -40,5 +40,10 @@
         "label": "secret"
       }
     ]
+  },
+  {
+    "key": "ilink",
+    "label": "iLink（微信）",
+    "needConfigKeys": []
   }
 ]

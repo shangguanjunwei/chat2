@@ -20,6 +20,7 @@ import { CursorAiCode } from '@/aiCode/cursor';
 import { eventBusListener } from '@/eventBus/index';
 import { multiSelectAction } from '@/utils/multiSelectAction';
 import { ClaudeAiCode } from '@/aiCode/claude';
+import { IlinkChatApp } from '@/chatApp/ilink';
 
 /** 首次向导：交互式收集 IM、AI、工程路径等并写入用户本地 JSON 配置。 */
 const reset = async () => {
@@ -71,6 +72,9 @@ const itemStart = async (option: ChatCodeBridgeOption) => {
       break;
     case 'wecom':
       chatAppInstance = new WecomChatApp(option) as unknown as ChatAppInterface;
+      break;
+    case 'ilink':
+      chatAppInstance = new IlinkChatApp(option) as unknown as ChatAppInterface;
       break;
     default:
       break;
