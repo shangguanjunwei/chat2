@@ -33,8 +33,6 @@ export class IlinkChatApp extends ChatApp {
       return getHttp(url, query, { ...config, headers });
     };
 
-  get_updates_buf: string = '';
-
   constructor(option: ChatCodeBridgeOption) {
     super();
     this.option = option;
@@ -61,15 +59,18 @@ export class IlinkChatApp extends ChatApp {
 
   private async sendText(to: string, content: string) { }
 
+
+  count: number = 0;
+
   private pullLoop = async (): Promise<void> => {
-    const fn = async () => {
+    const fn = async (get_updates_buf: string = '') => {
       try {
         // 参考文档：https://github.com/hao-ji-xing/openclaw-weixin/blob/main/weixin-bot-api.md
         const res = await this.post('/ilink/bot/getupdates', {
-          get_updates_buf: this.get_updates_buf,
-          base_info: { channel_version: '1.0.3' }
+          get_updates_buf: get_updates_buf,
+          base_info: { channel_version: '2.1.2' }
         });
-        this.get_updates_buf = res.data.get_updates_buf;
+        setTimeout(() => fn(res.data.get_updates_buf), 500);
         if (isEmpty(res.data.msgs) || res.data.msgs[0].message_type !== 1 || res.data.msgs[0].message_state !== 2) return;
         eventBus.emit(`${this.option.uuid}:messageBridge`, {
           text: res.data.msgs[0].item_list[0].text_item.text,
@@ -79,7 +80,6 @@ export class IlinkChatApp extends ChatApp {
           to_user_id: res.data.msgs[0].to_user_id,
           context_token: res.data.msgs[0].context_token,
         });
-        setTimeout(() => fn(), 1000);
       } catch (error: any) {
         console.log(error.message);
         process.exit(1);
