@@ -108,6 +108,11 @@ const multiSelectByInteractive = <T>(
         return;
       }
       if (key.name === 'return' || key.name === 'enter') {
+        if (selected.has(index)) {
+          selected.delete(index);
+        } else {
+          selected.add(index);
+        }
         const result = [...selected]
           .sort((a, b) => a - b)
           .map((i) => options[i] as T);

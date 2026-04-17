@@ -175,7 +175,7 @@ async function runCliStart(intent: StartIntent = 'start'): Promise<void> {
   chat-code-bridge nobg         前台运行
   chat-code-bridge stop         停止服务
   chat-code-bridge reload       重启服务
-  chat-code-bridge -h | --help  显示本帮助
+  chat-code-bridge -h           显示本帮助
 `);
   }
 }

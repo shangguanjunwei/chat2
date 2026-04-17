@@ -93,7 +93,7 @@ export async function prepareBridgeOptions(): Promise<ChatCodeBridgeOption[]> {
   let userLocalChatCodeBridgeConfig: ChatCodeBridgeOption[] = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
   if (isEmpty(userLocalChatCodeBridgeConfig)) await reset();
   userLocalChatCodeBridgeConfig = readFileContentAsJson(getFilePath('USER_LOCAL_CHAT_CODE_BRIDGE_CONFIG'));
-  let readyStartBotList: ChatCodeBridgeOption[] = userLocalChatCodeBridgeConfig;
+  let readyStartBotList: ChatCodeBridgeOption[] = [];
   if (userLocalChatCodeBridgeConfig.length !== 1) {
     readyStartBotList = await multiSelectAction<ChatCodeBridgeOption>(userLocalChatCodeBridgeConfig);
   }

@@ -68,6 +68,7 @@ export class IlinkChatApp extends ChatApp {
           return fn();
         };
         const msg = res.data.msgs[0];
+        addLog(this.option.appBotOption.ilink_bot_id as string, `Q：${msg.item_list[0].text_item.text}`);
         eventBus.emit(`${this.option.uuid}:messageBridge`, {
           text: msg.item_list[0].text_item.text,
           seq: msg.seq,
@@ -167,7 +168,9 @@ export class IlinkChatApp extends ChatApp {
     }).catch((error: any) => {
       console.error(`提示：${error.message}，程序退出`);
       process.exit(1);
-    });
+    }).finally(() => {
+      addLog(this.option.appBotOption.ilink_bot_id as string, `A：${data.result.text}`);
+    })
   }
 
   sendWelcomeMessage() { }
