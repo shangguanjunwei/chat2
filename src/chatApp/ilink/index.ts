@@ -11,14 +11,10 @@ export class IlinkChatApp extends ChatApp {
   option: ChatCodeBridgeOption;
   private post: (url: string, data?: Item, config?: Item) => Promise<AxiosResponse<any>>
     = (url, data = {}, config = {}) => {
-      const headers = {
-        ...config.headers,
-      };
+      const headers = { ...config.headers };
       const option2 = this.getOption();
       // X-WECHAT-UIN 为 uint32 经过 base64 编码
       if (option2.appBotOption?.bot_token) {
-        headers["X-WECHAT-UIN"] = Buffer.from(Math.floor(Math.random() * 2 ** 32).toString()).toString('base64');
-        headers.AuthorizationType = 'ilink_bot_token';
         headers.Authorization = `Bearer ${option2.appBotOption.bot_token}`;
       }
       return postHttp(url, data, { ...config, headers });
@@ -28,7 +24,7 @@ export class IlinkChatApp extends ChatApp {
       const headers = { ...config.headers };
       const option2 = this.getOption();
       if (option2.appBotOption?.bot_token) {
-        headers.Authorization = `${option2.appBotOption.bot_token}`;
+        headers.Authorization = `Bearer ${option2.appBotOption.bot_token}`;
       }
       return getHttp(url, query, { ...config, headers });
     };
@@ -57,9 +53,6 @@ export class IlinkChatApp extends ChatApp {
     }
   }
 
-  private async sendText(to: string, content: string) { }
-
-
   get_updates_buf: string = '';
 
   private pullLoop = async (): Promise<void> => {
@@ -68,20 +61,22 @@ export class IlinkChatApp extends ChatApp {
         // 参考文档：https://github.com/hao-ji-xing/openclaw-weixin/blob/main/weixin-bot-api.md
         const res = await this.post('/ilink/bot/getupdates', {
           get_updates_buf: this.get_updates_buf,
-          base_info: { channel_version: '2.1.2' }
+          base_info: { channel_version: '1.0.2' }
         });
         this.get_updates_buf = res.data.get_updates_buf;
         if (isEmpty(res.data.msgs) || res.data.msgs[0].message_type !== 1 || res.data.msgs[0].message_state !== 2) {
-          fn();
-          return;
+          return fn();
         };
         const msg = res.data.msgs[0];
         eventBus.emit(`${this.option.uuid}:messageBridge`, {
           text: msg.item_list[0].text_item.text,
-          group_id: msg.group_id,
-          message_id: msg.message_id,
+          seq: msg.seq,
           from_user_id: msg.from_user_id,
           to_user_id: msg.to_user_id,
+          client_id: msg.client_id,
+          message_id: msg.message_id,
+          session_id: msg.session_id,
+          group_id: msg.group_id,
           context_token: msg.context_token,
         });
         fn();
@@ -129,22 +124,18 @@ export class IlinkChatApp extends ChatApp {
     return true;
   }
 
-  sendMessage(data: AiCode2ChatAppResponseContent): void | Promise<void> {
-    return this.sendText(data.option.chat_id, data.result.text);
-  }
+  sendMessage() { }
 
   sendTyping(data: AiCode2ChatAppResponseContent) {
-    this.post('/ilink/bot/getconfig', {
-      ilink_user_id: data.option.from_user_id
-    }).then((res: any) => {
-      this.post('ilink/bot/sendtyping', {
-        ilink_user_id: data.option.from_user_id,
-        typing_ticket: res.data.typing_ticket,
-        status: data.result.status === 'completed' ? 2 : 1
-      });
-    }).catch(() => { })
+    this.post('/ilink/bot/getconfig', { ilink_user_id: data.option.from_user_id })
+      .then((res: any) => {
+        this.post('ilink/bot/sendtyping', {
+          ilink_user_id: data.option.from_user_id,
+          typing_ticket: res.data.typing_ticket,
+          status: data.result.status === 'completed' ? 2 : 1
+        });
+      }).catch(() => { })
   }
-
 
   async sendPrefixMessage(data: AiCode2ChatAppResponseContent) {
     this.sendTyping(data);
@@ -155,29 +146,33 @@ export class IlinkChatApp extends ChatApp {
     this.sendTyping(data);
     if (data.result.status !== 'completed') return;
     await this.post('/ilink/bot/sendmessage', {
+      get_updates_buf: this.get_updates_buf,
+      base_info: { channel_version: '1.0.2' },
       msg: {
+        seq: data.option.seq,
+        from_user_id: data.option.to_user_id,
         to_user_id: data.option.from_user_id,
-        message_type: 2,       // BOT 发出
-        message_state: 2,      // FINISH（完整消息）
-        context_token: data.option.context_token,  // ← 必填！
-        item_list: [
-          {
-            type: 1,
-            text_item: {
-              text: data.result.text
-            }
-          }
-        ]
-      }
+        client_id: data.option.client_id,
+        message_id: data.option.message_id,
+        session_id: data.option.session_id,
+        group_id: data.option.group_id,
+        message_type: 2, // BOT 发出
+        message_state: 2, // FINISH（完整消息）
+        context_token: data.option.context_token, // ← 必填！
+        item_list: [{
+          type: 1,
+          text_item: { text: data.result.text }
+        }]
+      },
     }).catch((error: any) => {
       console.error(`提示：${error.message}，程序退出`);
       process.exit(1);
     });
   }
 
-  sendWelcomeMessage(data: any) { }
+  sendWelcomeMessage() { }
 
-  async sendStreamMessage(data: AiCode2ChatAppResponseContent) { }
+  async sendStreamMessage() { }
 
   // 打开浏览器
   openBrowser(url: string) {

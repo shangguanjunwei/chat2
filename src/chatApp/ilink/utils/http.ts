@@ -7,18 +7,27 @@ const http = axios.create({
 
 http.interceptors.request.use((config: any) => {
   const headers = {
-    'Content-Type': 'application/json',
     ...config.headers,
+    'Content-Type': 'application/json',
+    AuthorizationType: 'ilink_bot_token',
+    "X-WECHAT-UIN": Buffer.from(Math.floor(Math.random() * 2 ** 32).toString()).toString('base64'),
   };
-  return {
+  const result = {
     ...config,
     headers,
-  };
+  }
+  // console.log("\n========================================");
+  // console.log("请求头配置", result.headers);
+  // console.log("请求参数", result.data);
+  // console.log("----------------------------");
+  return result;
 }, (error) => {
   return Promise.reject(error);
 });
 
 http.interceptors.response.use((response) => {
+  // console.log("响应数据", response.data);
+  // console.log("========================================\n");
   return response;
 }, (error) => {
   return Promise.reject(error);
