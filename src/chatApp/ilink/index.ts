@@ -6,7 +6,7 @@ import { AxiosResponse } from 'axios';
 import qrcode from 'qrcode-terminal';
 import { readFileContentAsJson, getFilePath, writeFileContentAsJson } from '@/utils/fileEvents';
 import { isEmpty } from 'lodash-es';
-
+const CHANNEL_VERSION = '2.0.2';
 export class IlinkChatApp extends ChatApp {
   option: ChatCodeBridgeOption;
   private post: (url: string, data?: Item, config?: Item) => Promise<AxiosResponse<any>>
@@ -61,7 +61,7 @@ export class IlinkChatApp extends ChatApp {
         // 参考文档：https://github.com/hao-ji-xing/openclaw-weixin/blob/main/weixin-bot-api.md
         const res = await this.post('/ilink/bot/getupdates', {
           get_updates_buf: this.get_updates_buf,
-          base_info: { channel_version: '1.0.2' }
+          base_info: { channel_version: CHANNEL_VERSION }
         });
         this.get_updates_buf = res.data.get_updates_buf;
         if (isEmpty(res.data.msgs) || res.data.msgs[0].message_type !== 1 || res.data.msgs[0].message_state !== 2) {
@@ -148,7 +148,7 @@ export class IlinkChatApp extends ChatApp {
     if (data.result.status !== 'completed') return;
     await this.post('/ilink/bot/sendmessage', {
       get_updates_buf: this.get_updates_buf,
-      base_info: { channel_version: '1.0.2' },
+      base_info: { channel_version: CHANNEL_VERSION },
       msg: {
         seq: data.option.seq,
         from_user_id: data.option.to_user_id,
